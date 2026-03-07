@@ -1,0 +1,237 @@
+DDR V1.18 f366f69a7d typ 23/07/17-15:48:58
+In
+LP4/4x derate en, other dram:1x trefi
+ddrconfig:0
+LP4 MR14:0x4d
+LPDDR4, 324MHz
+BW=32 Col=10 Bk=8 CS0 Row=16 CS=1 Die BW=16 Size=2048MB
+tdqss: cs0 dqs0: 24ps, dqs1: -72ps, dqs2: -48ps, dqs3: -144ps, 
+
+change to: 324MHz
+clk skew:0x62
+
+change to: 528MHz
+clk skew:0x58
+
+change to: 780MHz
+clk skew:0x58
+
+change to: 1560MHz(final freq)
+PHY drv:clk:38,ca:38,DQ:30,odt:60
+vrefinner:16%, vrefout:29%
+dram drv:40,odt:80
+vref_ca:00000068
+clk skew:0x1c
+cs 0:
+the read training result:
+DQS0:0x36, DQS1:0x37, DQS2:0x3b, DQS3:0x34, 
+min  :0x10  0xf 0x12  0xe  0x3  0x4  0x9  0x5 , 0xb  0x8  0x3  0x1  0xd  0x9  0xe  0x9 ,
+      0x14 0x12  0xe  0xd  0x3  0x1  0x4  0x5 , 0xc  0x9  0x9  0x1  0xd  0xe  0xc  0xf ,
+mid  :0x2a 0x2a 0x2e 0x29 0x1c 0x20 0x23 0x20 ,0x26 0x24 0x1d 0x1f 0x27 0x25 0x26 0x25 ,
+      0x30 0x2f 0x2a 0x29 0x1f 0x1e 0x1f 0x22 ,0x28 0x25 0x23 0x1d 0x2a 0x2a 0x28 0x2c ,
+max  :0x45 0x46 0x4a 0x45 0x36 0x3d 0x3d 0x3b ,0x41 0x41 0x37 0x3d 0x42 0x42 0x3f 0x41 ,
+      0x4c 0x4c 0x46 0x45 0x3c 0x3c 0x3a 0x3f ,0x44 0x42 0x3d 0x39 0x47 0x46 0x44 0x49 ,
+range:0x35 0x37 0x38 0x37 0x33 0x39 0x34 0x36 ,0x36 0x39 0x34 0x3c 0x35 0x39 0x31 0x38 ,
+      0x38 0x3a 0x38 0x38 0x39 0x3b 0x36 0x3a ,0x38 0x39 0x34 0x38 0x3a 0x38 0x38 0x3a ,
+the write training result:
+DQS0:0x20, DQS1:0xe, DQS2:0x13, DQS3:0x0, 
+min  :0x6d 0x72 0x74 0x71 0x62 0x65 0x6b 0x69 0x6b ,0x54 0x55 0x4f 0x51 0x5a 0x5a 0x5a 0x58 0x55 ,
+      0x60 0x61 0x5b 0x5c 0x54 0x52 0x54 0x57 0x59 ,0x4c 0x4b 0x48 0x45 0x51 0x51 0x4d 0x53 0x4a ,
+mid  :0x88 0x8c 0x8d 0x8b 0x79 0x7c 0x83 0x81 0x83 ,0x70 0x6f 0x68 0x6b 0x73 0x71 0x73 0x71 0x6e ,
+      0x7c 0x7c 0x74 0x76 0x6c 0x6a 0x6c 0x6f 0x71 ,0x67 0x64 0x60 0x5f 0x69 0x6b 0x67 0x6d 0x63 ,
+max  :0xa4 0xa6 0xa7 0xa6 0x91 0x94 0x9c 0x99 0x9b ,0x8d 0x8a 0x82 0x85 0x8c 0x89 0x8c 0x8a 0x88 ,
+      0x98 0x97 0x8e 0x91 0x84 0x82 0x84 0x88 0x8a ,0x82 0x7d 0x79 0x79 0x82 0x86 0x82 0x88 0x7d ,
+range:0x37 0x34 0x33 0x35 0x2f 0x2f 0x31 0x30 0x30 ,0x39 0x35 0x33 0x34 0x32 0x2f 0x32 0x32 0x33 ,
+      0x38 0x36 0x33 0x35 0x30 0x30 0x30 0x31 0x31 ,0x36 0x32 0x31 0x34 0x31 0x35 0x35 0x35 0x33 ,
+CA Training result:
+cs:0 min  :0x46 0x44 0x3a 0x37 0x3e 0x34 0x40 ,0x48 0x42 0x3e 0x37 0x3a 0x35 0x42 ,
+cs:0 mid  :0x83 0x83 0x77 0x76 0x7a 0x73 0x6e ,0x85 0x82 0x7a 0x76 0x77 0x75 0x6f ,
+cs:0 max  :0xc1 0xc3 0xb5 0xb6 0xb6 0xb3 0x9c ,0xc3 0xc3 0xb6 0xb6 0xb4 0xb5 0x9d ,
+cs:0 range:0x7b 0x7f 0x7b 0x7f 0x78 0x7f 0x5c ,0x7b 0x81 0x78 0x7f 0x7a 0x80 0x5b ,
+out
+U-Boot SPL board init
+U-Boot SPL 2017.09-gaaca6ffec1-211203 #zzz (Dec 03 2021 - 18:42:16)
+unknown raw ID phN
+unrecognized JEDEC id bytes: 00, 00, 00
+Trying to boot from MMC2
+MMC error: The cmd index is 1, ret is -110
+Card did not respond to voltage select!
+mmc_init: -95, time 10
+spl: mmc init failed with error: -95
+Trying to boot from MMC1
+SPL: A/B-slot: _a, successful: 0, tries-remain: 7
+Trying fit image at 0x4000 sector
+## Verified-boot: 0
+## Checking atf-1 0x00040000 ... sha256(32fbfe6139...) + OK
+## Checking uboot 0x00a00000 ... sha256(b2eb4e54f1...) + OK
+## Checking fdt 0x00b2db08 ... sha256(9679fe2a45...) + OK
+## Checking atf-2 0xfdcc1000 ... sha256(9662321b37...) + OK
+## Checking atf-3 0x0006a000 ... sha256(d959b30fef...) + OK
+## Checking atf-4 0xfdcd0000 ... sha256(b46eaa95b8...) + OK
+## Checking atf-5 0xfdcce000 ... sha256(2f8839c803...) + OK
+## Checking atf-6 0x00068000 ... sha256(6e9d32ba23...) + OK
+## Checking optee 0x08400000 ... sha256(66bbd17352...) + OK
+Jumping to U-Boot(0x00a00000) via ARM Trusted Firmware(0x00040000)
+Total: 234.986 ms
+
+INFO:    Preloader serial: 2
+NOTICE:  BL31: v2.3():v2.3-389-g4613ae965:cl
+NOTICE:  BL31: Built : 11:21:14, Jul  7 2022
+INFO:    GICv3 without legacy support detected.
+INFO:    ARM GICv3 driver initialized in EL3
+INFO:    pmu v1 is valid 220114
+INFO:    dfs DDR fsp_param[0].freq_mhz= 1560MHz
+INFO:    dfs DDR fsp_param[1].freq_mhz= 324MHz
+INFO:    dfs DDR fsp_param[2].freq_mhz= 528MHz
+INFO:    dfs DDR fsp_param[3].freq_mhz= 780MHz
+INFO:    Using opteed sec cpu_context!
+INFO:    boot cpu mask: 0
+INFO:    BL31: Initializing runtime services
+INFO:    BL31: Initializing BL32
+I/TC: 
+I/TC: OP-TEE version: 3.13.0-641-g4167319d3 #hisping.lin (gcc version 10.2.1 20201103 (GNU Toolchain for the A-profile Architecture 10.2-2020.11 (arm-10.16))) #8 Wed Mar 16 15:14:56 CST 2022 aarch64
+I/TC: Primary CPU initializing
+I/TC: Primary CPU switching to normal world boot
+INFO:    BL31: Preparing for EL3 exit to normal world
+INFO:    Entry point address = 0xa00000
+INFO:    SPSR = 0x3c9
+
+
+U-Boot 2017.09-gdde42ec6a2 #franki (Sep 07 2023 - 16:30:26 +0800)
+
+Model: Rockchip RK3568 Evaluation Board
+PreSerial: 2, raw, 0xfe660000
+DRAM:  2 GiB
+Sysmem: init
+Relocation Offset: 7d34b000
+Relocation fdt: 7b9f87e8 - 7b9fece0
+CR: M/C/I
+Using default environment
+
+dwmmc@fe2b0000: 1, dwmmc@fe2c0000: 2, sdhci@fe310000: 0
+Bootdev(atags): mmc 0
+MMC0: HS200, 200Mhz
+PartType: EFI
+DM: v1
+boot mode: None
+FIT: Failed to create resource list
+No resource partition
+No resource partition
+Failed to load DTB, ret=-19
+Failed to get kernel dtb, ret=-19
+io-domain: OK
+Failed to get scmi clk dev
+Model: Rockchip RK3568 Evaluation Board
+rockchip_set_serialno: could not find efuse/otp device
+CLK: (sync kernel. arm: enter 816000 KHz, init 816000 KHz, kernel 0N/A)
+  apll 816000 KHz
+  dpll 780000 KHz
+  gpll 1188000 KHz
+  cpll 1000000 KHz
+  npll 24000 KHz
+  vpll 24000 KHz
+  hpll 24000 KHz
+  ppll 200000 KHz
+  armclk 816000 KHz
+  aclk_bus 150000 KHz
+  pclk_bus 50000 KHz
+  aclk_top_high 300000 KHz
+  aclk_top_low 200000 KHz
+  hclk_top 150000 KHz
+  pclk_top 50000 KHz
+  aclk_perimid 300000 KHz
+  hclk_perimid 150000 KHz
+  pclk_pmu 100000 KHz
+Net:   No ethernet found.
+Hit key to stop autoboot('CTRL+C'):  0 
+ANDROID: reboot reason: "(none)"
+optee api revision: 2.0
+TEEC: Waring: Could not find security partition
+Not AVB images, AVB skip
+No valid android hdr
+Android image load failed
+Android boot failed, error -1.
+## Booting FIT Image at 0x7a298bc0 with size 0x0155ec00
+Fdt Ramdisk skip relocation
+## Loading kernel from FIT Image at 7a298bc0 ...
+   Using 'conf' configuration
+## Verified-boot: 0
+   Trying 'kernel' kernel subimage
+     Description:  unavailable
+     Type:         Kernel Image
+     Compression:  uncompressed
+     Data Start:   0x7a2badc0
+     Data Size:    22267912 Bytes = 21.2 MiB
+     Architecture: AArch64
+     OS:           Linux
+     Load Address: 0x00280000
+     Entry Point:  0x00280000
+     Hash algo:    sha256
+     Hash value:   1792bf23cc6f42784157b9740f29f1b41d195676a166de29003a12a3b9df71b3
+   Verifying Hash Integrity ... sha256 Bad hash: 4a8973798784694acb6ef8346badd16b4e6b9bb76e91e5eea1ac2247c4428551
+ error!
+Bad hash value for 'hash' hash node in 'kernel' image node
+Bad Data Hash
+ERROR: can't get kernel image!
+
+## Booting Rockchip Format Image
+Could not find kernel partition, ret=-1
+MMC error: The cmd index is 1, ret is -110.....
+Card did not respond to voltage select!
+mmc_init: -95, time 12
+switch to partitions #0, OK
+mmc0(part 0) is current device
+Failed to mount ext2 filesystem...
+** Unrecognized filesystem type **
+starting USB...
+Bus dwc3@fcc00000: usb maximum-speed not found
+Register 2000140 NbrPorts 2
+Starting the controller
+USB XHCI 1.10
+Bus dwc3@fd000000: usb maximum-speed not found
+Register 2000140 NbrPorts 2
+Starting the controller
+USB XHCI 1.10
+scanning bus dwc3@fcc00000 for devices... 1 USB Device(s) found
+scanning bus dwc3@fd000000 for devices... 1 USB Device(s) found
+       scanning usb for storage devices... 0 Storage Device(s) found
+
+Device 0: unknown device
+No ethernet found.
+missing environment variable: pxeuuid
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/00000000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/0000000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/000000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/00000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/0000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/000
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/00
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/0
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/default-arm-rockchip
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/default-arm
+No ethernet found.
+missing environment variable: bootfile
+Retrieving file: pxelinux.cfg/default
+No ethernet found.
+Config file not found
+No ethernet found.
+=> 
