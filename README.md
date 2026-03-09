@@ -1,5 +1,6 @@
 # RK3568B2
-粤嵌开发板
+粤嵌开发板  
+Machine model: Rockchip RK3568 EVB1 DDR4 V10 Board  
 一、核心硬件信息
 SoC: Rockchip RK3568（4 核 Cortex-A55）  
 内存: 约 2GB（2078720K），可用约 1.95GB  
