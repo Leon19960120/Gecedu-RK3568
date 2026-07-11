@@ -33,6 +33,7 @@
 ```
 GEC-RK3568/
 ├── README.md              ← 本文件
+├── LICENSE                ← MIT 许可证
 ├── 辅助文档/               ← 硬件参考手册等文档
 │   └── 粤嵌开发板硬件参考手册.md
 ├── docs/
@@ -47,4 +48,92 @@ GEC-RK3568/
 │       └── 各设备相关说明.md
 ├── logs/                  ← 串口启动日志归档
 │   ├── README.md          ← 日志目录索引（含固件版本对照表）
-│   ├── 0305-DDR训练/      ← 3月5日 DDR 预加载器训�
+│   ├── 0305-DDR训练/      ← 3月5日 DDR 预加载器训练日志
+│   ├── 0306-UBoot启动与故障/ ← 3月6日完整启动流程与故障记录
+│   ├── 0307-对比参考/     ← 正常板基准日志
+│   ├── 硬件替换调试/      ← 更换 boot/UBoot 等组件后的对比
+│   └── 新版本固件/        ← DDR v1.25 最新预加载器日志
+├── hardware/
+│   └── Device Tree/       ← 设备树文件
+│       ├── rk3568.dts
+│       └── rk3568.dtb
+├── scripts/
+│   └── power-key.sh       ← 电源键测试脚本
+├── demo/
+│   └── rk356x-demo_good_board_backup  ← LVGL 图形测试界面备份
+├── uboot/                 ← UBoot 镜像
+│   └── uboot.img
+├── build/
+│   └── MiniLoaderAll.bin  ← 预加载器二进制
+├── rockchip_test/         ← Rockchip 官方硬件测试套件
+│   ├── rockchip_test.sh   ← 总控脚本
+│   ├── NOTICE             ← 测试套件说明
+│   ├── audio/             ← 音频测试
+│   ├── auto_reboot/       ← 自动重启测试
+│   ├── bluetooth/         ← 蓝牙测试
+│   ├── camera/            ← 摄像头测试
+│   ├── cpu/               ← CPU 测试
+│   ├── ddr/               ← DDR 测试
+│   ├── flash_test/        ← 闪存测试
+│   ├── gpu/               ← GPU 测试
+│   ├── recovery_test/     ← Recovery 测试
+│   ├── suspend_resume/    ← 休眠唤醒测试
+│   ├── video/             ← 视频测试
+│   └── wifi/              ← Wi-Fi 测试
+└── assets/                ← 图片资源
+    └── IMG_2742.JPG
+```
+
+## 快速开始
+
+### 串口调试
+
+- 连接方式：USB Type-C (USB_TTL) → CH340C 转串口
+- 波特率：1500000
+- OTG 接口可用于固件烧写
+
+### 固件烧写
+
+通过 OTG 接口将开发板进入 Loader 模式，使用 Rockchip 刷机工具烧写镜像。
+参考：[ADB 模式切换到 Loader 模式日志](docs/development/ADB模式切换到Loader模式日志.md)
+
+### 硬件测试
+
+```bash
+# 运行完整硬件测试套件
+./rockchip_test/rockchip_test.sh
+
+# 或单独测试某项
+cd rockchip_test/audio
+cd rockchip_test/wifi
+# ...
+```
+
+## 固件版本演进
+
+| 固件版本 | 日期 | 说明 |
+|---------|------|------|
+| DDR V1.13 | 2022-02-18 | 早期预加载器 |
+| DDR V1.16 | 2023-03-02 | 中期版本 |
+| DDR V1.18 | 2023-07-17 | 广泛使用 |
+| DDR v1.25 | 2025-12-03 | 最新预加载器 (`5b48980fd7`) |
+
+## 调试记录
+
+### DDR 训练日志 (2026-03-05 ~ 03-07)
+
+3 月初对开发板进行了系统的 DDR 训练调试，记录了从 V1.13 到 v1.25 多个固件版本的训练数据，对比了正常板与问题板的差异。详见 [logs/README.md](logs/README.md)。
+
+### GPIO 资源
+
+| 引脚 | 功能 |
+|------|------|
+| GPIO 111 | 蜂鸣器 |
+| GPIO 120-124 | 用户 LED |
+| GPIO 40/42 | 按键 UP/DOWN |
+| GPIO 73-84 | 蓝牙控制 |
+| GPIO 98 | 功放控制 (spk-ctl) |
+
+## 许可证
+
+本项目包含 Rockchip 官方测试套件 (`rockchip_test/`)，遵循其自带的 NOTICE 文件中的许可条款。
