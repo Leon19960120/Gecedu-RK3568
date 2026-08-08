@@ -13,8 +13,8 @@
 | `03_device_tree.md` | 板级 DTS 适配与已确认映射（GMAC/USB/I2C/触摸/背光） |
 | `04_rootfs_compat.md` | 64-bit kernel + 32-bit AArch32 userspace（`CONFIG_COMPAT`） |
 | `05_ethernet.md` | GMAC / RTL8211F 千兆以太网 bring-up（✅ 1Gbps） |
-| `06_usb.md` | USB2 / USB3（DWC3 + `usbdp_phy`），含 xhci 死循环修复 |
-| `07_i2c_sensors.md` | I2C2 / MPU6050 / BH1750 / EEPROM（✅ 已验证）+ 错误假设保留 |
+| `06_usb.md` | USB2 / USB3（DWC3 + `combphy0`(@fcc00000 host0)/`combphy1`(@fd000000 host1) 提供 SS phy；**无 `usbdp_phy`**），含 xhci 死循环（SUPERSEDED 诊断手段）|
+| `07_i2c_sensors.md` | I2C2 / MPU6050 / BH1750（✅ 已验证）；MPU6050 INT(GPIO3_C7)/EEPROM 为 SCHEMATIC、**NOT MODELED IN CURRENT DTS** |
 | `08_adb_gadget.md` | USB Gadget（kernel path works，userspace adbd 未收口） |
 | `09_known_issues.md` | 未解决问题清单（显示 / Wi-Fi / NPU / CAN / USART …） |
 | `10_debug_notes.md` | 调试笔记（按"问题→现象→假设→验证→结论"记录，保留错误假设） |

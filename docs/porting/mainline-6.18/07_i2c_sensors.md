@@ -1,55 +1,76 @@
-# 03 - I2C 传感器：BH1750 光照 + MPU6050 六轴
+# 07 - I2C 传感器：BH1750 光照 + MPU6050 六轴
 
 > 板子（RK3568 EVB1 V10 / GEC V1.1）出厂 4.19 下已验证存在两个 I2C 传感器，
 > 但主线 `rk3568-evb1-v10.dts` 未声明，需补进 `rk3568-gec-v11.dts` 并打开内核驱动。
 > 本步骤不涉及 Buildroot / ADB，纯内核 + DTS 改动。
+>
+> **Evidence 三层**：committed DTS = 当前代码状态；底板原理图 = 硬件设计证据；runtime = 实机验证。
+> 三者冲突时并列记录，不互相覆盖（见 `03_device_tree.md` §2.3 / §2.4）。
 
-## 1. 接线来源（出厂 DTB 反编译核对）
+## 1. 接线来源（分层核对）
 
-`hardware/Device Tree/rk3568.dts` 中：
+### 1.1 Committed Linux 6.18 DTS（`&i2c2`，权威代码状态）
+`rk3568-gec-v11.dts` 已含：
+- `bh1750@23`：`compatible = "rohm,bh1750"; reg = <0x23>; status = "okay";`
+- `mpu6050@69`：`compatible = "invensense,mpu6050"; reg = <0x69>; status = "okay";`
+- **两者均不含 `interrupts` / `mount-matrix`**。
+- pinctrl `i2c2m1_xfer`（SDA `GPIO4_B4` / SCL `GPIO4_B5`），`clock-frequency = <100000>`（100 kHz）。
 
-- `i2c@fe5b0000`（即 `i2c2`，alias `i2c2 = "/i2c@fe5b0000"`）
-  - `bh1750@23`：`compatible = "rohm,bh1750"; reg = <0x23>;`
-  - `mpu6050@69`：`compatible = "invensense,mpu6050"; reg = <0x69>;`
-    - `interrupt-parent = <&gpio3>; interrupts = <RK_PC7 IRQ_TYPE_EDGE_RISING>;`
-    - `mount-matrix = "-0.9848 0 -0.1736 0 -1 0 -0.1736 0 0.9848";`（出厂值，轴向修正）
+### 1.2 底板原理图信号（SCHEMATIC，硬件设计证据）
+- `MPU6050 INT → GPIO3_C7`（`RK_PC7`）—— 原理图明确画出 INT 走线。
+- EEPROM `U301 BL24C02F` 接 `I2C2_SDA_M1` / `I2C2_SCL_M1`（EEPROM 存在，但 **committed DTS 未建模**，见 §2 注）。
 
-> 中断 GPIO：出厂 DTS 里 `phandle 0x41` = `gpio3`，`interrupts <0x17 0x01>` = 引脚 23 = `GPIO3_C7`，
-> flags `0x01` = `IRQ_TYPE_EDGE_RISING`。已转写为标准宏。
+### 1.3 出厂 4.19 DTB（FACTORY-4.19，对照参考）
+出厂 DTB 里 `mpu6050@69` 还带：
+- `interrupt-parent = <&gpio3>; interrupts = <RK_PC7 IRQ_TYPE_EDGE_RISING>;`
+- `mount-matrix = "-0.9848 0 -0.1736 0 -1 0 -0.1736 0 0.9848";`（轴向修正，出厂值）
 
-## 2. DTS 补丁（加到 `rk3568-gec-v11.dts`）
+> **INT（GPIO3_C7）**属「SCHEMATIC / FACTORY-4.19 有，但 current DTS 未建模」——原理图明确画出 INT 走线，出厂 DTB 也带 `interrupts`；**mount-matrix** 仅属「FACTORY-4.19 / legacy DTS 有，但 current DTS 未建模」——它是出厂 4.19 DTB / 旧 DTS 的轴向修正值，**不得标 SCHEMATIC**（原理图无此属性）。
+> 它们**都不是 invented**，必要时可据原理图（INT）或出厂 DTB（mount-matrix）补回（见 §2 注），但 6.18 下尚未验证。
+
+## 2. DTS 补丁（对齐 committed DTS，加到 `rk3568-gec-v11.dts`）
+
+下面片段**逐字对应**已提交 DTS 的 `&i2c2`（与代码一致，无 interrupt / 无 mount-matrix）：
 
 ```dts
-/* I2C2：BH1750 光照 + MPU6050 六轴（出厂默认 okay，保险起见再显式开） */
+/* I2C2：BH1750 光照 + MPU6050 六轴（committed DTS 现状） */
 &i2c2 {
     status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c2m1_xfer>;
+    clock-frequency = <100000>;
 
     /* 光照传感器 ROHM BH1750，挂 i2c2 0x23 */
-    bh1750: light-sensor@23 {
+    bh1750@23 {
         compatible = "rohm,bh1750";
         reg = <0x23>;
         status = "okay";
     };
 
     /* 六轴加速度/陀螺仪 Invensense MPU6050，挂 i2c2 0x69 */
-    mpu6050: imu@69 {
+    mpu6050@69 {
         compatible = "invensense,mpu6050";
         reg = <0x69>;
-        interrupt-parent = <&gpio3>;
-        interrupts = <RK_PC7 IRQ_TYPE_EDGE_RISING>;
-        /* 轴向修正矩阵（来自出厂 DTB） */
-        mount-matrix = "-0.984807753012208 0 -0.173648177666930",
-                       "0 -1 0",
-                       "-0.173648177666930 0 0.984807753012208";
         status = "okay";
     };
 };
 ```
 
-> 注意：`i2c2` 的 pinctrl 为 `i2c2m1_xfer`（SDA `GPIO4_B4` / SCL `GPIO4_B5`，已与提交 DTS 核对），
-> 无需额外 `pinctrl-0`；中断沿用 `gpio3` 标准控制器。
-> 本板 I2C2 推荐 `clock-frequency = <100000>`（100 kHz）。**不要把 BH1750 的历史 NACK 唯一归因于 400 kHz**——
-> 实测中 100 kHz 也曾 NACK，更可能是早期 DTS 节点缺失/驱动未编导致设备未绑上（详见 `../../../docs/troubleshooting/i2c.md` §5）。
+> **NOT MODELED IN CURRENT DTS（不要当错误删掉）**：
+> - **MPU6050 INT（`GPIO3_C7`）**：原理图明确存在，但 committed DTS 没描述 `interrupts` → 当前驱动走 **polling 模式**。
+>   若要用中断模式，可据原理图补回（SCHEMATIC 背书）：
+>   ```dts
+>   mpu6050@69 {
+>       compatible = "invensense,mpu6050";
+>       reg = <0x69>;
+>       interrupt-parent = <&gpio3>;
+>       interrupts = <RK_PC7 IRQ_TYPE_EDGE_RISING>;
+>       status = "okay";
+>   };
+>   ```
+>   该中断路径 6.18 下**未验证**（NOT VERIFIED）。
+> - **`mount-matrix`**：出厂 4.19 DTB 有轴向修正值；committed DTS 未含。若 6.18 下轴向不对，可据出厂 DTB 补回，但同样未验证。
+> - **EEPROM（BL24C02F）**：原理图存在、接 `I2C2_SDA_M1/SCL_M1`，但 committed DTS 无此节点。I2C 地址 **NEEDS VERIFICATION**（未用 `i2cdetect` 或确认 A0/A1/A2 绑法前，不预设 `0x50`）。
 
 ## 3. 内核配置（符号务必打开，建议 =y 内置，避开模块版本 mismatch）
 
@@ -69,7 +90,7 @@ grep -E 'CONFIG_BH1750|CONFIG_INV_MPU6050' .config
 > 只要本次 **整套内核 + 模块同源重编** 就不会再 mismatch；本步骤更推荐直接 `=y` 内置，
 > 不依赖 `modules_install` / 外置 .ko。
 
-## 4. 重编 + 重打包 FIT（沿用 02_usb_fix 流程）
+## 4. 重编 + 重打包 FIT（沿用 06_usb.md 流程）
 
 ```bash
 make -j$(nproc) Image.gz rockchip/rk3568-gec-v11.dtb   # 若用 =m 则追加 modules
@@ -88,6 +109,7 @@ i2cdetect -y 2        # i2c2 → 应看到 0x23 和 0x69
 # 20: -- -- -- 23 -- -- -- -- -- -- -- -- -- -- -- --
 # 60: -- -- -- -- -- -- -- -- 69 -- -- -- -- -- -- --
 ```
+> EEPROM 地址未经验证，不要预设 0x50；若 `i2cdetect` 看到其它地址上有设备，结合原理图（U301）判断。
 
 ### 5.2 驱动绑定后看 IIO 设备
 
@@ -117,8 +139,8 @@ cat in_temp_raw
 # 平放时 in_accel_z_raw 应接近 +g（约 16384，±2g 量程），晃动时三轴变化
 ```
 
-> 若 `in_accel_z_raw` 接近 0 而某水平轴接近 g，说明 `mount-matrix` 轴向不符，
-> 可回退为不填 `mount-matrix`（驱动默认单位矩阵）。
+> 当前 committed DTS 为 **polling 模式**（无 interrupt）。若 `in_accel_z_raw` 接近 0 而某水平轴接近 g，
+> 说明轴向不符（可能需补 `mount-matrix`，见 §2 注，来源 FACTORY-4.19，未验证）。
 
 ## 6. 排错
 
@@ -126,13 +148,13 @@ cat in_temp_raw
 |------|------------|
 | `i2cdetect` 看不到 0x23/0x69 | `i2c2` 没 enable → 确认 `&i2c2 { status="okay"; }`；或 pinctrl 冲突 |
 | `name` 无 bh1750/mpu6050 | 驱动未编进内核 → 检查 `CONFIG_BH1750` / `CONFIG_INV_MPU6050_I2C` |
-| MPU6050 `in_accel_*` 全 0 | 中断 GPIO 配错（PC7）或 `mount-matrix` 异常；可先去掉中断属性试轮询 |
+| MPU6050 `in_accel_*` 全 0 / 轴向错 | committed DTS 为 polling 模式（无 interrupt）；若自行加回 `interrupts`（SCHEMATIC `GPIO3_C7`），确认 GPIO 配错；轴向不符可补 `mount-matrix`（FACTORY-4.19，未验证） |
 | 模块 `invalid module format` | 旧 4.19 .ko 混入；用 `=y` 内置或整套重编 modules |
 
 ## 7. 进度
 
 - [x] 出厂 DTB 挖出 BH1750 / MPU6050 总线与地址
-- [x] DTS 补丁 + 内核配置 + 验证步骤就绪
+- [x] DTS 补丁 + 内核配置 + 验证步骤就绪（对齐 committed DTS，无 interrupt / mount-matrix）
 - [x] 用户 WSL 侧应用 DTS、开驱动、重编 FIT
 - [x] 板端 `i2cdetect` + IIO 读数确认（2026-08-08 实测 ✅）
 

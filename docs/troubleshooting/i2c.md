@@ -48,8 +48,9 @@ make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- olddefconfig
 **现象**：`in_accel_z_raw` 接近 0 而某水平轴接近 g。
 
 **处理**：
-- 中断 GPIO 配错（PC7）→ 先去掉中断属性试轮询。
-- `mount-matrix` 轴向不符 → 回退为不填 `mount-matrix`（驱动默认单位矩阵）。
+- **committed 6.18 DTS 的 MPU6050 没有 `interrupts` 属性 → 当前是 polling 模式**（这是正常状态，不是 bug）。原理图有 `MPU6050 INT → GPIO3_C7`（`RK_PC7`，SCHEMATIC 背书），但 committed DTS 未建模该中断。
+- 若你**自行加回** `interrupts = <RK_PC7 IRQ_TYPE_EDGE_RISING>;` 想用中断模式：先确认 GPIO 配错（应是 `GPIO3_C7`）→ 仍能 "去掉中断属性试轮询" 回到 committed DTS 的 polling 态。
+- `mount-matrix` 轴向不符 → 回退为不填 `mount-matrix`（驱动默认单位矩阵）；如需修正，可据出厂 4.19 DTB 的轴向矩阵补回（FACTORY-4.19 证据，6.18 下未验证）。
 
 ```bash
 # 平放时 in_accel_z_raw 应接近 +g（约 16384，±2g 量程），晃动时三轴变化

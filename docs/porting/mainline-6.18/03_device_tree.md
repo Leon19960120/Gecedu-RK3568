@@ -76,8 +76,8 @@
 | `fd000000` | `usb_host1_xhci`（DWC3 Host） | 第二路 USB3 Host |
 | `fd800000` | `usb_host0_ehci` | USB2 Host EHCI |
 | `fd840000` | `usb_host0_ohci` | USB2 Host OHCI |
-| `fc800000` | `usb_host1_ehci` | 第二路 EHCI |
-| `fc840000` | `usb_host1_ohci` | 第二路 OHCI |
+| `fd880000` | `usb_host1_ehci` | 第二路 EHCI |
+| `fd8c0000` | `usb_host1_ohci` | 第二路 OHCI |
 
 > ⚠️ **4.19 与 mainline 地址语义不同**：厂内 4.19 里 `fcc00000` 是 `usbdrd`(OTG dwc3)、`fd000000` 是 Host dwc3；
 > mainline 下 `fcc00000` 仍是 **`usb_host0_xhci`(DWC3 DRD)**、`fd000000` 是 **`usb_host1_xhci`(DWC3 Host)**，二者都是 dwc3 控制器。
