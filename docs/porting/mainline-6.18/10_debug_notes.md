@@ -97,6 +97,11 @@
 
 ## 2026-08-07（续2）— 网络修复实战：gmac0 reset + 板级 DTS gec-v11
 
+> ⚠️ **历史结论已被 committed DTS 推翻（SUPERSEDED）**：本节约写「`fe010000` = 主线 `&gmac0`、`fe2a0000` = `&gmac1` 幽灵口」，
+> 但已提交 `gecedu-rk3568-v6.18` 的 `rk3568-gec-v11.dts` 实测为 **`fe010000 = &gmac1`（enabled，真口）**、`fe2a0000 = &gmac0`（disabled）。
+> 即本节的 gmac0/gmac1 命名（含 `pinctrl gmac0_*`、`&gmac0` reset 写法）与后续事实**相反**。正确映射见 `../03_device_tree.md` §2.1。
+> 本段保留为开发过程记录，**请勿据此改 DTS**。
+
 - **进展**：
   - 新内核（STMMAC 已 =y 内置）烧入后，板端 `ip link` 出现 **eth0 + eth1 双口**（旧内核 0 个 eth）→ 证明重编+重打外置 FIT+只烧 boot 成功。但双口均 `state DOWN`、无载波。
   - 用户找"现成适配 DTS"：`arch/arm64/boot/dts/rockchip/` 全是 mainline 公版板，`rk3568-evb1-v10.dts` 不含粤嵌传感器，列表内无 `rk3568-gec-*` → **无现成，需自改**。
@@ -105,7 +110,7 @@
 - **关键决策 / 根因纠正**：出厂 `hardware/Device Tree/rk3568.dts` 逐字节核对证明，板载千兆 PHY(RTL8211F) 实际接在 **`ethernet@fe010000` = 主线 `&gmac0`**（fe2a0000=主线 gmac1 在出厂 DTS 里 `status="disabled"`，板上没接 PHY，是"幽灵口"）。出厂 BSP 把 fe010000 标成 "gmac1" 只是厂内命名癖，**判断依据必须是 reg 地址不是标签名**。
   - reset 规格：`snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>; snps,reset-delays-us = <0 20000 100000>;` 必须加到 **`&gmac0`(fe010000) 的 MAC 节点**，不是 PHY 子节点（stmmac_mdio_reset 在 MDIO 扫描前 assert/deassert）；pinctrl 用 `gmac0_*`（非 `gmac1m1_*`）。`&gmac1` 设 disabled 去掉 phantom eth。
 - **验证结果（逻辑闭环）**：用户板端之前 `gpiochip3 空` + `MDIO device at address 0 is missing` + eth 都 DOWN，正因 reset 没在 MDIO 扫描前执行（错放在 PHY 子节点/错 MAC）。改 `&gmac0` 的 `snps,reset-gpios` 后，PHY 应被识别为 RTL8211F。
-- **下一步**：烧入 gec-v11 + gmac0 reset 修复后，验证 `cat /sys/kernel/debug/gpio` 见 gpio-13(snps,reset) out hi；`dmesg|grep -iE 'gmac|mdio|phy|rtl'` 应见 `PHY [stmmac-0:00] driver [RTL8211F ...]`。
+- **下一步**：烧入 gec-v11 + gmac0 reset 修复后，验证 `cat /sys/kernel/debug/gpio` 见 gpio-109(snps,reset，即 gpio3 RK_PB5) out hi；`dmesg|grep -iE 'gmac|mdio|phy|rtl'` 应见 `PHY [stmmac-0:00] driver [RTL8211F ...]`。
 
 ---
 
@@ -130,7 +135,7 @@
 - **进展（出厂 4.19 DTS 逆向，硬件事实）**：
   - **CAN**：3 个控制器 `can@fe570000/fe580000/fe590000`，compatible `rockchip,rk3568-can-2.0`，但**三节点全部 `status="disabled"`**；pinctrl `can0m1/can1m0` 已定义。即厂内 BSP 也没默认使能 CAN。
   - **USART**：出厂 `aliases` 把 `serial1~9` 映射到 `fe650000~fe6d0000`（uart1~9）+ `serial0=fdd50000`(uart0，通常 ATF/secure)。其中 `status="okay"` 的用户串口 = **uart1(fe650000) / uart3(fe670000) / uart4(fe680000) / uart8(fe6c0000)** 共 4 个；uart2(fe660000) 是出厂 FIQ 控制台（节点 disabled，由 ttyFIQ0 直占）；uart5/6/7/9 均 disabled。用户问的"三个 usart"即板子实际引出的 3 路（4 个里挑）。
-- **6.18 现状（关键）**：mainline `rk3568.dtsi` 默认**禁用所有 uart/can**；gec-v11.dts 目前只确认使能 gmac0（网络）。**故 CAN 与那 3 个用户 USART 在 6.18 下大概率尚未出现**（与早前网络/IIO 同一根因：需板级 DTS 显式 `status="okay"` + 对应驱动编入）。6.18 当前控制台 `ttyS2`=uart2 是我们自己打开的，非厂内 FIQ 路径。
+- **6.18 现状（关键）**：mainline `rk3568.dtsi` 默认**禁用所有 uart/can**；gec-v11.dts 目前只确认使能 gmac1（网络；本节当时记为 gmac0，已被 committed DTS 推翻，见 续2 SUPERSEDED 框）。**故 CAN 与那 3 个用户 USART 在 6.18 下大概率尚未出现**（与早前网络/IIO 同一根因：需板级 DTS 显式 `status="okay"` + 对应驱动编入）。6.18 当前控制台 `ttyS2`=uart2 是我们自己打开的，非厂内 FIQ 路径。
 - **验证命令（板端，只看不改）**：
   - `ls /dev/ttyS*` — 看哪些 UART 成了设备
   - `dmesg | grep -iE 'ttyS|uart|serial' | head` — 看内核实际 probe 了哪些
@@ -155,6 +160,11 @@
 ---
 
 ## 2026-08-08（续6）— USB2 Host 全链路通 ✅ / DWC3 仍待修
+
+> ⚠️ **SUPERSEDED DIAGNOSTIC WORKAROUND**：本节的「启用 `usbdp_phy`」诊断路径，后续已被 committed DTS 证伪——
+> `gecedu-rk3568-v6.18` 的 `rk3568.dtsi` **无 `usbdp_phy` 节点**，USB3 SuperSpeed phy 实为 **`combphy0`**；
+> 正确修法是 `usb_host0_xhci`（`fcc00000`）`dr_mode="peripheral"` + `combphy0`（`status="okay"`），而非启用 `usbdp_phy`。
+> 本段保留为当时的诊断探索记录，非最终结论。权威说明见 `../03_device_tree.md` §2.2 与 `06_usb.md`。
 
 - **进展**：用户应用 usb2phy0/1 + EHCI/OHCI + host 控制器启用后，**USB2 Host 全链路 ✅**：EHCI/OHCI 起来、板载 4 口 Hub 已枚举（`hub 1-1: 4 ports detected`），`deferred probe pending` 消失，插 U 盘走 Mass Storage 正常。
 - **关键澄清（fcc00000 坑，易踩）**：出厂 4.19 DTS 里 `fcc00000` 是 `usbdrd`（OTG dwc3，reg=0xfcc00000）；但 6.18 主线把该地址**重组为 `usbdp_phy`（USB3-DP combo PHY）**，不再是独立 dwc3。故 mainline 修法是「启用 `usbdp_phy`」，**不是**「再加 dwc3@fcc00000」。已查 `hardware/Device Tree/rk3568.dts` 确认 4.19 双 dwc3 结构（usbdrd@fcc00000 OTG + usbhost@fd000000 Host，phys=<usb2>+<usb3>）。
@@ -182,7 +192,7 @@
 
 ## 2026-08-08（续8）— 战略转向：弃主线 6.18，改投 Rockchip BSP 6.6 🔀
 
-- **进展**：用户确认内核路线从「主线 6.18」转向 **Rockchip BSP 6.6**（`linux-rockchip` 的 `stable-6.6` 分支）。根因：用户需要 NPU，而**主线任意版本（6.6 / 6.18 / 7.x）均无 RK3568 NPU 官方驱动**——主线仅有的 "Rocket" NPU 驱动只支持 RK3588 及更新芯片。
+- **进展**：用户确认内核路线从「主线 6.18」转向 **Rockchip BSP 6.6**（`linux-rockchip` 的 `stable-6.6` 分支；**历史批注：实际官方仓库为 `rockchip-linux/kernel`，分支 `develop-6.6`**，详见 `../rockchip-6.6/00_overview.md`）。根因：用户需要 NPU，而**主线任意版本（6.6 / 6.18 / 7.x）均无 RK3568 NPU 官方驱动**——主线仅有的 "Rocket" NPU 驱动只支持 RK3588 及更新芯片。
 - **关键决策 / 取舍**：
   - BSP 6.6 含 **in-tree `rknpu`**（`drivers/rknpu/`，DTS `npu@fde40000`），且 6.6 是 **LTS 长期支持版**（比早前提的 6.1 更优：更新 + LTS）。
   - **附带红利（直接砍掉最难的 T2）**：BSP 自带 `panel-simple` 补丁会解析 `panel-init-sequence` → MIPI-DSI 屏**靠改 DTS 即点亮**，原 `panel-himax-evb1.c` 自定义 drm_panel 驱动不再必需。
@@ -191,7 +201,7 @@
 - **验证结果（事实级，非板端）**：社区 `rknpu-dkms` 即抽取自 Rockchip **6.6.y**，反向证明 BSP 6.6 的 rknpu 成熟可用；FriendlyELEC / Armbian BSP 6.1 亦 in-tree rknpu，6.6 更新且 LTS 更稳。
 - **下一步**：
   1. **对齐文档**：本项目日志 + `docs/porting/` 内核版本统一改指 **BSP 6.6**；NPU 从「T3 放弃」改为「BSP 自带，可用 rknn-toolkit2 跑推理」。
-  2. 拉取 BSP 6.6 源码（`rockchip-linux/linux` `stable-6.6`），以 `rk3568-evb1-v10.dts` 为基底重建粤嵌板级 DTS（复用 6.18 阶段的 gmac0 reset / usb2phy / usbdp_phy 等结论；NPU 节点 BSP 已含，启用即可）。
+  2. 拉取 BSP 6.6 源码（`rockchip-linux/linux` `stable-6.6`；**历史批注：应为 `rockchip-linux/kernel` 分支 `develop-6.6`**），以 `rk3568-evb1-v10.dts` 为基底重建粤嵌板级 DTS（复用 6.18 阶段的 gmac1 reset / usb2phy / combphy0 等结论；NPU 节点 BSP 已含，启用即可）。
   3. 重编内核 + 外置 FIT + RKDevTool 只烧 boot，验证 BSP 6.6 启动、`rknpu.ko` 加载、`/dev/dri/renderD*` 出现。
 - **遗留/风险**：① BSP 非纯主线，与上游有差异、部分上游补丁缺失，但 RK3568 资料最全最稳；② `rknn` 用户态库（`librknnrt`）需另行获取（Rockchip 闭源分发，`airockchip/rknn-toolkit2`）；③ 原 `panel-himax-evb1.c` / `rk3568-evb1-v10-panel.dts` 在 BSP 路线下降级为「备用参考」，屏改由厂内 panel-simple + DTS 点亮。
 
@@ -203,7 +213,7 @@
 - **269 MB 根因（澄清）**：非 DTS 改动大。浅克隆本地只有 v6.18 那一个快照、无历史；而**目标仓库 `Leon19960120/linux` 当时是空的**（无共享历史）→ push 把浅克隆里唯一那棵 v6.18 源码树（96,586 objects / 268.97 MiB）整棵传上去。**空目标 + 浅克隆 = 必传整树**（不是"协商找不到共同历史"，是对面没历史可协商）。
 - **验证命令**：`git rev-parse --is-shallow-repository`（预计 `true`）；`git count-objects -vH`（看实际占用）。
 - **关键提醒**：① `ce6fcfba` 是**主线 6.18** DTS，本项目已弃 6.18 转 BSP 6.6 → 这笔提交现属"6.18 实验记录"，BSP 6.6 需另开分支另写（DTS 基底不同，gmac0 reset/usb2phy 等结论可复用）。② `fit-image.its` / `*.config` 仍 **untracked**，未进本次 push；`boot.img` 也未 commit → 产物未备份。
-- **后续正确做法**：切 BSP 6.6 时 **fork `rockchip-linux/linux`（正经 fork，GitHub 服务端自带完整历史）**，再推 BSP 分支 → 服务器已有 base，只传 DTS diff（几 KB），不会再 269 MB。建议 `fit-image.its` 留元仓库 `docs/porting/`（可 commit）、defconfig 进内核 fork、`boot.img` 等生成物不进 git。
+- **后续正确做法**：切 BSP 6.6 时 **fork `rockchip-linux/linux`（正经 fork，GitHub 服务端自带完整历史；**历史批注：应为 `rockchip-linux/kernel` 分支 `develop-6.6`**）**，再推 BSP 分支 → 服务器已有 base，只传 DTS diff（几 KB），不会再 269 MB。建议 `fit-image.its` 留元仓库 `docs/porting/`（可 commit）、defconfig 进内核 fork、`boot.img` 等生成物不进 git。
 
 ---
 

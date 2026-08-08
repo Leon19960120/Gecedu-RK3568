@@ -11,7 +11,7 @@
 |------|------|------|
 | Wi-Fi（RTL8723DS） | ❌ | 原 4.19 `8723ds.ko` 无法用于 6.18；需树外驱动重编 |
 | 显示（MIPI-DSI 屏） | ⚠️ | framebuffer / display pipeline 未完成；BSP 6.6 路线可改 DTS 点亮 |
-| 触摸（GT911） | ⚠️ | 驱动主线已有，但 6.18 下 `goodix.ko` 版本错未加载；需重编模块 |
+| 触摸（三层冲突） | ⚠️ | **Committed DTS**：`goodix,gt1151 @0x14`，irq `GPIO0_B5` / rst `GPIO0_B6`；**Schematic**：`TP_INT→GPIO3_B3` / `TP_RST→GPIO3_B4`；两层 GPIO 不一致，不强行统一；**Validation: NOT VERIFIED**（显示/触摸未 bring-up） |
 | ADB Gadget | ⚠️ | kernel gadget 路径已通，userspace `adbd` 未完全收口 |
 | NPU | ❌ | mainline 6.18 路线暂不继续 → 转 Rockchip BSP 6.6 |
 | GPU / VPU | ⚠️ | Panfrost（GPU）已开；硬件视频编解码（rkvdec/vepu）未完整验证 |
@@ -63,10 +63,24 @@
 
 ## 6. 触摸 / GPU / VPU
 
-- 触摸 GT911：`drivers/input/touchscreen/goodix.c` 原生支持，只需改 DTS（compatible + reg + GPIO）
-  并为 6.18 重编 `goodix.ko` 替换出厂 4.19 版本。
+- 触摸（**三层冲突，NEEDS VERIFICATION**）：committed DTS `&i2c1` 为 `goodix,gt1151 @0x14`（irq `GPIO0_B5`、rst `GPIO0_B6`）；
+  但底板原理图信号 / schematic signals 为 `TP_INT → GPIO3_B3` / `TP_RST → GPIO3_B4`，**与 DTS 的 GPIO0_B5/B6 不一致**。两层均为待验证来源，本文不强行统一。
+  `drivers/input/touchscreen/goodix.c` 原生支持，只需确认 DTS，并为 6.18 重编 `goodix.ko` 替换出厂 4.19 版本。
+  （Validation: **NOT VERIFIED** —— 显示/触摸未 bring-up，无法判定实机真实接线。）
 - GPU：Panfrost 已 `=y` 打开，可跑开源 Mesa；但未做实测渲染。
 - VPU：硬件视频编解码（rkvdec / vepu）在 mainline 支持度有限，BSP 6.6 路线更完整（rkvdec/MPP）。
+
+---
+
+## 7. DTS 资源冲突（NEEDS SCHEMATIC VERIFICATION）
+
+> 以下冲突来自已提交 DTS（Evidence: MAINLINE-6.18），但**未修改 DTS**，需原理图佐证是否造成实际干扰。
+
+- **GPIO3_B5 复用冲突**：committed DTS 中 `&gmac1` 的 `snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>`
+  与 `&dsi0` `panel@0` 的 `reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>` **复用同一 GPIO3_B5**。
+  - 影响面：以太网 PHY reset 与 MIPI-DSI 屏 reset 指向同一引脚，理论上可能互相拉低干扰。
+  - 现状：6.18 实测千兆网已通（~942 Mbps），说明 gmac1 reset 路径未致命；但屏未点亮，无法排除该冲突对屏 reset 的影响。
+  - 处置：**本笔不修改 DTS**，标记为 `NEEDS SCHEMATIC VERIFICATION`，待原理图确认 GPIO3_B5 物理走线后再定夺（拆分引脚 / 调整 reset 时序 / 改 DTS）。
 
 ---
 

@@ -1,3 +1,15 @@
+# 03 - 接口映射与板级测试（4.19 出厂系统实测）
+
+> **Evidence: FACTORY-4.19** —— 本页 GPIO 编号、`/sys/kernel/debug/gpio` 输出、`evtest` 结果均来自**出厂 4.19.232 系统**的实机测试，
+> 不代表 6.18 mainline 内核的 GPIO 分配。
+> 6.18 committed DTS 的引脚分配以 `../porting/mainline-6.18/03_device_tree.md` 为准。
+>
+> ⚠️ **VBUS GPIO 方向冲突**：本页 4.19 输出 `gpio-6 = vcc5v0_otg`（即 4.19 视角 OTG=A6 / HOST=A5），
+> 与 6.18 committed DTS（`vcc5v0_usb_host`=GPIO0_A6、`vcc5v0_usb_otg`=GPIO0_A5）**方向相反**。
+> 两来源并列、统一标 `NEEDS RE-VERIFICATION`，详见 `../porting/mainline-6.18/03_device_tree.md` §2.2。本页不修改。
+
+---
+
 ### 蜂鸣器
 
 已确定蜂鸣器为以gpio111
@@ -101,6 +113,10 @@ gpiochip3: GPIOs 96-127, parent: platform/fe760000.gpio, gpio3:
 
 gpiochip4: GPIOs 128-159, parent: platform/fe770000.gpio, gpio4:
 ```
+
+> 上表为 4.19 出厂系统的实时 GPIO 状态。`gpio-6 = vcc5v0_otg` 即 4.19 视角的 VBUS 分配（OTG=A6）；
+> 注意与 6.18 committed DTS（OTG=A5 / HOST=A6）方向相反，详见本页顶部 VBUS 冲突说明。
+> 蜂鸣器 `gpio111`、LED `gpio120/121/123/124` 等为 4.19 内核 GPIO 编号，6.18 下需以 committed DTS 重新核对（Evidence: FACTORY-4.19）。
 
  粤嵌RK3568 开发板上有配备 6个按键。其中 4 个按键是用 ADC0 模拟，按键按下去 ADC0 有不同的电压变化。  
 

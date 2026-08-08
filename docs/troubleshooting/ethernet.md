@@ -27,22 +27,23 @@
 
 **现象**：重编烧入后双口出现，但 `ip link` 显示 `state DOWN`，插网线无反应。
 
-**根因**：reset 加错位置 / 没禁用 `gmac1` 幽灵口。
+**根因**：reset 加错位置 / 误把真口 `gmac1`（`fe010000`）当作需禁用口（实情：`fe010000 = &gmac1` 为真口，`fe2a0000 = &gmac0` 当前 DTS 未接 PHY、disabled）。
 
-**关键修复**：reset 必须加到 **`&gmac0` 的 MAC 节点**（不是 PHY 子节点），并禁用 `&gmac1`：
+**关键修复**：reset 必须加到 **`&gmac1` 的 MAC 节点**（不是 PHY 子节点），并禁用 `&gmac0`：
 
 ```dts
-&gmac0 {
+&gmac1 {
     status = "okay";
     snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>;
     snps,reset-delays-us = <0 20000 100000>;
-    pinctrl-0 = <&gmac0_miim &gmac0_tx_bus2 &gmac0_rx_bus2
-                 &gmac0_rgmii_clk &gmac0_rgmii_bus>;
+    pinctrl-0 = <&gmac1m1_miim &gmac1m1_tx_bus2 &gmac1m1_rx_bus2
+                 &gmac1m1_rgmii_clk &gmac1m1_clkinout &gmac1m1_rgmii_bus>;
 };
-&gmac1 { status = "disabled"; };
+&gmac0 { status = "disabled"; };
 ```
 
-> 判定真口的依据是 **reg 地址 `fe010000`**，不是标签名（厂内把 fe010000 标成 "gmac1" 只是命名癖）。
+> 判定真口的依据是 **reg 地址 `fe010000`**（`= 主线 &gmac1`，enabled 真口），不是厂内/旧笔记里把 fe010000 误称的 `gmac0`。
+> 完整 committed DTS 片段见 `../porting/mainline-6.18/03_device_tree.md` §2.1。
 
 ---
 

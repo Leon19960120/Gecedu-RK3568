@@ -35,17 +35,36 @@
 | 外部时钟 | 125 MHz |
 | Reset GPIO | `GPIO3_B5`（`gpio3 RK_PB5`，低有效） |
 
-关键 DTS 片段（reset 加在 **MAC 节点 `&gmac1`**，不是 PHY 子节点）：
+关键 DTS 片段（**来源**：已提交 `gecedu-rk3568-v6.18` 的 `rk3568-gec-v11.dts`，逐字摘录；`Evidence: MAINLINE-6.18`）：
 
 ```dts
 &gmac1 {
-    status = "okay";
+    assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
+    assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&gmac1_clkin>;
+    clock_in_out = "input";
+    phy-handle = <&rgmii_phy1>;
+    phy-mode = "rgmii";
+    tx_delay = <0x41>;
+    rx_delay = <0x1e>;
     snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>;
     snps,reset-delays-us = <0 20000 100000>;
     pinctrl-names = "default";
-    pinctrl-0 = <&gmac1_miim &gmac1_tx_bus2 &gmac1_rx_bus2 &gmac1_rgmii_clk &gmac1_rgmii_bus>;
+    pinctrl-0 = <&gmac1m1_miim
+                 &gmac1m1_tx_bus2
+                 &gmac1m1_rx_bus2
+                 &gmac1m1_rgmii_clk
+                 &gmac1m1_clkinout
+                 &gmac1m1_rgmii_bus>;
+    status = "okay";
 };
-/* fe2a0000 = &gmac0：当前 DTS 未接 PHY，禁用（非"幽灵口"表述） */
+/* MDIO 总线 1 上的 PHY（reg=0），绑定到上方 phy-handle */
+&mdio1 {
+    rgmii_phy1: ethernet-phy@0 {
+        compatible = "ethernet-phy-ieee802.3-c22";
+        reg = <0x0>;
+    };
+};
+/* fe2a0000 = &gmac0：当前板级 DTS 未接 PHY，disabled（非"幽灵口"表述） */
 &gmac0 { status = "disabled"; };
 ```
 
@@ -65,30 +84,61 @@
 > `usbdp_phy` **不存在于本内核树**（`gecedu-rk3568-v6.18` 的 `rk3568.dtsi` 里 `usb_host0_xhci` 的 USB3 phy 是 `combphy0`）。
 > 修正 USB3 时**不是**「启用 usbdp_phy」，而是确认 `usb_host0_xhci`/`usb_host1_xhci` 已 okay 且 `combphy0` 提供 USB3 SuperSpeed phy。完整 DTS 见 `06_usb.md`。
 
-板级 VBUS GPIO（来自 4.19 DTS，**NEEDS RE-VERIFICATION** ⚠️）：
-- HOST：`GPIO0_A5`（**与已提交 DTS 的 `vcc5v0_usb_host`/`vcc5v0_usb_otg` 命名/连接需核对，暂未改 DTS**）
-- OTG：`GPIO0_A6`（4.19 日志里 `gpio-6 = vcc5v0_otg` 即此）
-> 已提交 `gecedu-rk3568-v6.18` 的 `rk3568-gec-v11.dts` 通过 `usb2phy0_host`/`usb2phy0_otg` 的 `phy-supply = <&vcc5v0_usb_host>/<&vcc5v0_usb_otg>` 供 VBUS，
-> 与上面的 4.19 GPIO 编号**可能不一致**，以实际提交 DTS 为准。
+板级 VBUS GPIO 映射（**NEEDS RE-VERIFICATION** ⚠️，两来源方向相反，本文不取舍）：
+
+| 来源 | HOST 口（`vcc5v0_usb_host`） | OTG 口（`vcc5v0_usb_otg`） |
+|------|------------------------------|----------------------------|
+| 已提交 DTS `gecedu-rk3568-v6.18`（Evidence: MAINLINE-6.18） | `GPIO0_A6`（gpio0 **RK_PA6**） | `GPIO0_A5`（gpio0 **RK_PA5**） |
+| 4.19 出厂 DTS / 日志（Evidence: FACTORY-4.19） | `GPIO0_A5`（4.19 日志 `gpio-6 = vcc5v0_otg` 对应） | `GPIO0_A6` |
+
+> 两来源对 HOST / OTG 的 GPIO 分配**方向相反**，本地无原理图交叉验证时无法判定哪份是物理事实。
+> 已提交 DTS 是"当前代码状态"的最高权威，但本板尚无原理图佐证，故两栏**并列**并统一标 `NEEDS RE-VERIFICATION`；**未修改 DTS**。
 
 ### 2.3 I2C2（M1，已验证 ✅）
 
-| 项 | 值 |
-|----|----|
-| 控制器地址 | `fe5b0000`（`i2c2`，alias `i2c2 = "/i2c@fe5b0000"`） |
-| 引脚 | SDA = `GPIO4_B4`，SCL = `GPIO4_B5`（pinctrl `i2c2m1_xfer`，dtsi 自动绑定） |
-| BH1750（光照） | `0x23` |
-| EEPROM（24C02） | `0x50` |
-| MPU6050（六轴） | `0x69`，中断 `GPIO3_C7`（`RK_PC7 IRQ_TYPE_EDGE_RISING`） |
+| 项 | 值 | Evidence |
+|----|----|----------|
+| 控制器地址 | `fe5b0000`（`i2c2`） | MAINLINE-6.18 |
+| 引脚 | SDA = `GPIO4_B4`，SCL = `GPIO4_B5`（pinctrl `i2c2m1_xfer`） | MAINLINE-6.18 |
+| 时钟频率 | `100 kHz` | MAINLINE-6.18 |
+| BH1750（光照） | `0x23`（IIO，采样已验证） | MAINLINE-6.18 ✅ |
+| MPU6050（六轴） | `0x69`（IIO，polling/基础采样已验证） | MAINLINE-6.18 ✅ |
+| MPU6050 INT | `GPIO3_C7`（`RK_PC7`） | SCHEMATIC |
+| EEPROM（BL24C02F） | 原理图 U301，接 `I2C2_SDA_M1`/`I2C2_SCL_M1` | SCHEMATIC |
 
-DTS 片段与驱动开启见 `07_i2c_sensors.md`。
+> **三层事实区分（关键，避免再踩"DTS 没写 = invented"的坑）**：committed DTS 的 `&i2c2` **仅含 `bh1750@23` 与 `mpu6050@69` 两个子节点**，
+> 既**没有** EEPROM 节点，也**没有** MPU6050 的 `interrupts` 属性。
+> - **committed DTS 代码片段**：要保持与代码一致——无 EEPROM、MPU6050 无 `interrupts`（演示"当前提交代码"就该如此，见 `07_i2c_sensors.md`）。
+> - **EEPROM / MPU6050 INT 不是 invented**：底板原理图明确画出 `U301 BL24C02F`（`I2C2_SDA_M1`/`I2C2_SCL_M1`）与 `MPU6050 INT → GPIO3_C7`。
+>   故硬件事实表**必须保留**二者，并标 `SCHEMATIC / NOT MODELED IN CURRENT DTS`。
+> - **EEPROM I2C 地址 NEEDS VERIFICATION**：未用 `i2cdetect` 或确认 A0/A1/A2 硬件绑法前，**不预设 `0x50`**（24C02 常见地址 ≠ 本板事实）。
+> - **MPU6050 中断模式 NOT VERIFIED**：committed DTS 未描述中断，故中断驱动路径未验证；IIO polling 采样已通。
 
-### 2.4 其它已确认映射（来自出厂 DTS / 逆向）
+### 2.4 其它映射（committed DTS 与硬件事实区分）
 
-- **触摸 GT911**：`i2c1`(`fe5a0000`) `@0x5d`，irq `GPIO3_B3`，rst `GPIO3_B4`（mainline `rk3568-evb1-v10.dts` 写的是 `gt1151 @0x14`，需改；`drivers/input/touchscreen/goodix.c` 原生支持 GT911）。
-- **背光 PWM**：原理图丝印 "PWM4"，但 DTS 实测 `fe6e0010` = 内核 **`pwm5`**（主线 `rk3568-evb1-v10.dts` 用 `&pwm4`，迁移时该索引 **+1**）。
-- **屏**：7 寸 MIPI-DSI，1024×600@60，4 lane，像素时钟 51.2 MHz（非 LVDS；README 旧 "LVDS" 是错的）。
+> **三层事实，允许冲突，文档任务是记录冲突而非选一个覆盖另外两个**：
+> - **committed DTS** = 当前软件状态（代码写了什么）；
+> - **schematic** = 硬件物理设计证据（板子设计成什么）；
+> - **runtime test** = 实机验证到的行为（实际跑通到哪步）。
+> 未做实机验证的标 `NOT VERIFIED`；DTS 有而 schematic 没有 / schematic 有而 DTS 没建模的，如实标 `NOT MODELED IN CURRENT DTS`。
+
+- **触摸（两层冲突，NEEDS VERIFICATION）**：
+  - **Committed Linux 6.18 DTS**（`&i2c1`）：`goodix,gt1151 @0x14`，`irq-gpios = GPIO0_B5`（`RK_PB5`），`reset-gpios = GPIO0_B6`（`RK_PB6`）。
+  - **Board schematic signals**：`TP_INT → GPIO3_B3`（`RK_PB3`），`TP_RST → GPIO3_B4`（`RK_PB4`）。
+  - 两层 GPIO 分配**不一致**（DTS 写 GPIO0_B5/B6，底板原理图信号 / schematic signals 为 GPIO3_B3/B4），本文**不强行统一**，如实并列。
+  - **Validation: NOT VERIFIED** —— 显示/触摸尚未 bring-up 完成，无法判定哪层是实机真实接线。
+  - 早期笔记的 `GT911 @0x5d` 与 committed DTS 也不符（INFERRED，已推翻），但**不能**据此把 `GPIO3_B3/B4` 当成"错误"删掉——它来自 SCHEMATIC，与 DTS 同为待验证来源，应标 `SCHEMATIC / NOT MODELED IN CURRENT DTS` 而非"invented"。
+- **背光 PWM**：committed DTS 的 `&backlight` 用 `pwms = <&pwm4 ...>`（即内核 `pwm4`）。
+  前期"丝印 PWM4 实为内核 pwm5、索引 +1"的说法**与 committed DTS 不符**，以 committed DTS 为准（INFERRED，已推翻）。
+- **屏**：committed DTS `&dsi0` 的 `panel@0` compatible = `wanchanglong,w552793baa`, `raydium,rm67200`；7 寸 MIPI-DSI，1024×600@60，4 lane（非 LVDS）。
+  （Evidence: MAINLINE-6.18；Validation: **NOT VERIFIED** —— display pipeline 未点亮，详见 `09_known_issues.md` §3。）
 - **按键**：6 个，其中 4 个经 ADC0 模拟（`adc-keys`），2 个 GPIO（`gpio_keys_polled`）。
+
+> ⚠️ **GPIO3_B5 资源冲突（NEEDS SCHEMATIC VERIFICATION）**：committed DTS 中
+> `&gmac1` 的 `snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>` 与
+> `&dsi0` `panel@0` 的 `reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>` **复用同一 GPIO3_B5**。
+> 当前 DTS **未改**（保持提交态）；该冲突是否造成 PHY reset 与屏 reset 互相干扰，需原理图佐证，
+> 标记为 `NEEDS SCHEMATIC VERIFICATION`，不在此笔修正 DTS。
 
 ---
 
@@ -125,7 +175,7 @@ cat /sys/firmware/devicetree/base/gmac@fe010000/status 2>/dev/null | tr -d '\0'
 | 坑 | 现象 | 处理 |
 |----|------|------|
 | `gmac0`/`gmac1` 混淆 | 出现 `eth0`+`eth1` 双口但都 DOWN | 以 reg 地址判定真口：`fe010000`=&gmac1（真口，okay），`fe2a0000`=&gmac0（当前 DTS 未接 PHY，disabled，非"幽灵口"） |
-| 背光 PWM 索引 | 屏不亮，报 PWM 找不到 | 用 `pwm5`（非丝印 pwm4），索引 +1 |
+| 背光 PWM 索引 | 屏不亮 | committed DTS 的 `&backlight` 用 `pwms = <&pwm4 ...>`（即内核 `pwm4`）；前期"丝印 PWM4 实为 pwm5、索引 +1"的说法与 committed DTS 不符，以 committed DTS 为准 |
 | `usbdp_phy` 误判（历史错误判断/已推翻） | dwc3 `failed to init core` | 本内核树**无 `usbdp_phy`**；`fcc00000`=&usb_host0_xhci(DWC3 DRD)，USB3 SS phy 为 `combphy0`；启用 `usb_host0_xhci`+`combphy0` |
 | `panel-init-sequence` 私有属性 | 屏不亮 | 主线 `panel-simple` 忽略该属性；BSP 6.6 路线才靠它点亮（见 `../rockchip-6.6/`） |
 | CAN 兼容字符串 | CAN 不 probe | mainline 用 `rockchip,rk3568-canfd`，**不是**厂内 `rockchip,rk3568-can-2.0` |
