@@ -106,7 +106,7 @@
   - 新内核（STMMAC 已 =y 内置）烧入后，板端 `ip link` 出现 **eth0 + eth1 双口**（旧内核 0 个 eth）→ 证明重编+重打外置 FIT+只烧 boot 成功。但双口均 `state DOWN`、无载波。
   - 用户找"现成适配 DTS"：`arch/arm64/boot/dts/rockchip/` 全是 mainline 公版板，`rk3568-evb1-v10.dts` 不含粤嵌传感器，列表内无 `rk3568-gec-*` → **无现成，需自改**。
   - 用户新建独立板级 DTS `rk3568-gec-v11.dts`（比直接改 evb1-v10 干净，不污染上游），编译 `rk3568-gec-v11.dtb` 成功。
-  - **FIT 指向修正**：本智能体已改仓库 `docs/porting/fit-image.its`，fdt 段 incbin 由 `rk3568-evb1-v10.dtb` → `rk3568-gec-v11.dtb`（第59行），kernel 段仍 incbin `Image.gz`。
+  - **FIT 指向修正**：本智能体已改仓库 `porting/mainline-6.18/boot/fit-image.its`，fdt 段 incbin 由 `rk3568-evb1-v10.dtb` → `rk3568-gec-v11.dtb`（第59行），kernel 段仍 incbin `Image.gz`。
 - **关键决策 / 根因纠正**：出厂 `hardware/Device Tree/rk3568.dts` 逐字节核对证明，板载千兆 PHY(RTL8211F) 实际接在 **`ethernet@fe010000` = 主线 `&gmac0`**（fe2a0000=主线 gmac1 在出厂 DTS 里 `status="disabled"`，板上没接 PHY，是"幽灵口"）。出厂 BSP 把 fe010000 标成 "gmac1" 只是厂内命名癖，**判断依据必须是 reg 地址不是标签名**。
   - reset 规格：`snps,reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>; snps,reset-delays-us = <0 20000 100000>;` 必须加到 **`&gmac0`(fe010000) 的 MAC 节点**，不是 PHY 子节点（stmmac_mdio_reset 在 MDIO 扫描前 assert/deassert）；pinctrl 用 `gmac0_*`（非 `gmac1m1_*`）。`&gmac1` 设 disabled 去掉 phantom eth。
 - **验证结果（逻辑闭环）**：用户板端之前 `gpiochip3 空` + `MDIO device at address 0 is missing` + eth 都 DOWN，正因 reset 没在 MDIO 扫描前执行（错放在 PHY 子节点/错 MAC）。改 `&gmac0` 的 `snps,reset-gpios` 后，PHY 应被识别为 RTL8211F。
@@ -170,14 +170,14 @@
 - **关键澄清（fcc00000 坑，易踩）**：出厂 4.19 DTS 里 `fcc00000` 是 `usbdrd`（OTG dwc3，reg=0xfcc00000）；但 6.18 主线把该地址**重组为 `usbdp_phy`（USB3-DP combo PHY）**，不再是独立 dwc3。故 mainline 修法是「启用 `usbdp_phy`」，**不是**「再加 dwc3@fcc00000」。已查 `hardware/Device Tree/rk3568.dts` 确认 4.19 双 dwc3 结构（usbdrd@fcc00000 OTG + usbhost@fd000000 Host，phys=<usb2>+<usb3>）。
 - **验证结果**：DWC3（`fd000000` = mainline `usb_host0_xhci`）仍 `failed to initialize core`——根因是 dwc3 需 usb2-phy(u2phy0_otg，已✅) + usb3-phy（来自 `usbdp_phy`@fcc00000，仍 disabled），拿不到 SS phy。
 - **DWC3 修法（待用户应用）**：gec-v11.dts 加 `&usbdp_phy { status="okay"; rockchip,u3otg0-port=<&u2phy0_otg>; };`；标签/属性名先 `grep -n 'usbdp_phy:' / 'rockchip,u3otg' arch/arm64/boot/dts/rockchip/rk3568.dtsi` 核对（更老 dtsi 无该属性就只写 `status="okay"`）。**备选**：若只要 USB2 OTG，dwc3 节点加 `snps,usb2-only;` 即可不依赖 usbdp_phy。
-- **遗留/风险**：USB Gadget/Device 模式（`/sys/kernel/config/usb_gadget/rockchip` 报错）是独立于 Host 的另一半，待 DWC3 修好后再做（configfs + extcon + UDC）。`02_usb_fix.md` 已增订：顶部进度状态（USB2✅/DWC3⏳）、第2节加 usbdp_phy 诊断、第3节补 📌fcc00000 澄清 + 应用前 3 项核对。
+- **遗留/风险**：USB Gadget/Device 模式（`/sys/kernel/config/usb_gadget/rockchip` 报错）是独立于 Host 的另一半，待 DWC3 修好后再做（configfs + extcon + UDC）。`06_usb.md` 已增订：顶部进度状态（USB2✅/DWC3⏳）、第2节加 usbdp_phy 诊断、第3节补 📌fcc00000 澄清 + 应用前 3 项核对。
 
 ---
 
 ## 2026-08-08（续7）— 移植资料沉淀 + T2 显示驱动骨架准备
 
 - **进展**：沉淀三份移植资料到 `docs/porting/`，把早期逆向结论固化为可复用文档：
-  1. `mainline-7.x-porting.md` — 完整移植评估：T0–T3 难度分级、屏原理图↔DTS 交叉核对（PyMuPDF 提 PDF 文本）、9 项已知坑清单、分区/烧写布局、`parameter.txt`、WiFi RTL8723DS 专项方案（§11）。
+  1. `docs/porting/rockchip-6.6/00_overview.md` — 完整移植评估（原 `mainline-7.x-porting.md` 已重写进本 6.6 BSP bring-up 文档）：T0–T3 难度分级、屏原理图↔DTS 交叉核对（PyMuPDF 提 PDF 文本）、9 项已知坑清单、分区/烧写布局、`parameter.txt`、WiFi RTL8723DS 专项方案（§11）。
   2. `panel-himax-evb1.c` — 屏面板 `drm_panel` 驱动骨架：`compatible="gec,rk3568-evb1-dsi-panel"`，`prepare()` 完整重放 **20 条 init 命令**（字节级从 DTS `panel-init-sequence` 机器生成，杜绝手抄错），复位/使能 GPIO、regulator、背光按 DTS 接线。
   3. `rk3568-evb1-v10-panel.dts` — 屏 DTS 片段：把 panel 节点接到 `&dsi0`，含 `pwm5` 背光修正提示。
 - **关键发现（T2 硬骨头根因）**：
