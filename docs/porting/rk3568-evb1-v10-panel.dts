@@ -1,0 +1,57 @@
+// Reference DTS fragment for the 7" MIPI-DSI panel on RK3568 EVB1 DDR4 V10.
+//
+// How to use:
+//   1. Copy panel-himax-evb1.c into drivers/gpu/drm/panel/ and add it to
+//      drivers/gpu/drm/panel/Makefile:
+//        obj-$(CONFIG_DRM_PANEL_HIMAX_GEC_EVB1) += panel-himax-evb1.o
+//      and a Kconfig entry (tristate "Himax DSI panel on GEC RK3568 EVB1").
+//   2. Merge the fragment below into
+//      arch/arm64/boot/dts/rockchip/rk3568-evb1-v10.dts
+//      (or keep it in a separate .dtsi and /include/ it).
+//
+// Verified facts (from the board's extracted DTS + schematics):
+//   - Panel reset (LRSTB) : GPIO3_A7, active-high
+//   - LCD power enable    : vcc3v3_lcd0_n, gpio-regulator on GPIO0_C7
+//   - Backlight PWM        : pwm@fe6e0010 = pwm5  (mainline evb1 uses &pwm4,
+//                          so change pwm4 -> pwm5, see &backlight below)
+//   - Touch (GT911)        : handled separately on i2c1, see the porting doc
+
+// --- regulator (usually already present in mainline evb1; keep if present) ---
+&vcc3v3_lcd0_n {
+	/* gpio-regulator on GPIO0_C7, as in the vendor DTS */
+};
+
+// --- backlight: NOTE pwm5, not the mainline evb1 default pwm4 ---
+&backlight {
+	pwms = <&pwm5 0 25000 0>;   // 25 kHz, mainline default is &pwm4
+};
+
+// --- DSI panel node ---
+&dsi0 {
+	status = "okay";
+
+	panel@0 {
+		compatible = "gec,rk3568-evb1-dsi-panel";
+		reg = <0>;
+		reset-gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_HIGH>;
+		power-supply = <&vcc3v3_lcd0_n>;
+		backlight = <&backlight>;
+		// enable-gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>; // only if your
+		//                                                 // board wires it
+		//                                                 // as a plain GPIO
+
+		port {
+			panel_in_dsi: endpoint {
+				remote-endpoint = <&dsi0_out_panel>;
+			};
+		};
+	};
+
+	ports {
+		port@1 {
+			dsi0_out_panel: endpoint {
+				remote-endpoint = <&panel_in_dsi>;
+			};
+		};
+	};
+};

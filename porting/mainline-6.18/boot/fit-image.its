@@ -1,0 +1,78 @@
+/dts-v1/;
+
+/*
+ * FIT 镜像描述文件（Image Tree Source）
+ * 用途：把主线内核 Image + rk3568-gec-v11.dtb（粤嵌板级适配 DTB）打包成厂商 U-Boot 认识的 boot.img（FIT 格式）
+ *
+ * 依据（已字节级校验，见 2026-08-06 工作日志）：
+ *   正确参考镜像 = E:/20250526HYL/GEC-RK3568b2/4.19.232驱动backup/boot.img
+ *   该镜像为【外部数据型 FIT】（魔数 d00dfeed，DTB totalsize=1536），结构：
+ *     images/kernel   (type=kernel,   os=linux,    compression=none, load/entry=0xffffff01 占位)
+ *     images/fdt      (type=flat_dt,               compression=none, load=0xffffff00 占位)
+ *     images/resource (type=multi, 启动 logo，可选)
+ *     configurations/conf (kernel+fdt[+multi])，并带 RSA2048 签名节点(key "dev")
+ *   厂商 U-Boot 日志显示 "## Verified-boot: 0"（不强制验签），但【会校验 hash 节点】。
+ *   之前那次“启动不起来”的坏备份，根因正是 kernel 子镜像的 sha256 hash 与数据不符
+ *   （"Bad hash value for 'hash' hash node in 'kernel' image node"）。
+ *
+ * 本 .its 的策略（对齐正确镜像 + 避开坏备份的坑）：
+ *   - load/entry 用【真实 RAM 地址】，不用厂商占位符 0xffffff01/0xffffff00。
+ *     原因：占位符只在 SPL 阶段被换算有效；手动 mmc read 到内存再 boot_fit 时，
+ *     U-Boot 不会做换算，会把内核/设备树往非法地址搬 → "## Booting FIT Image =>" 反复失败。
+ *     真实地址取自本板 U-Boot 环境变量：kernel = 0x04080000（kernel_addr_c，位于 FIT
+ *     加载区 0x00280000 之上、不重叠），fdt = 0x08300000（fdt_addr_r）。
+ *   - 保留 hash 节点（mkimage 会自动算出正确 sha256），去掉厂商的 RSA 签名节点
+ *     （我们没有 "dev" 私钥，且 verified-boot=0 不强制验签）；这样 U-Boot 的 hash
+ *     校验能通过，也不会因缺签名而失败。这正是坏备份的反面教材：宁可不带 hash，也别带错 hash。
+ *   - 省略 resource（启动 logo），主线内核用不到；只打包 kernel + fdt。
+ *
+ * 用法（在 WSL 的 ~/linux-rk3568 目录下）：
+ *   1) 把本文件保存为 ~/linux-rk3568/fit-image.its
+ *   2) 确认 arch/arm64/boot/Image.gz 与 arch/arm64/boot/dts/rockchip/rk3568-gec-v11.dtb 已存在
+ *   3) 执行： mkimage -f fit-image.its boot.img
+ *   4) 把生成的 boot.img 拷回 Windows，用 RKDevTool 只烧 boot 分区
+ */
+
+/ {
+    description = "GEC RK3568 EVB1 - mainline Linux 6.18";
+    #address-cells = <1>;
+
+    images {
+        kernel {
+            description = "Linux kernel 6.18 (RK3568)";
+            /* gzip 压缩：主线 arm64 Image 不自解压，须由 U-Boot 解压；
+               39MiB -> ~15MiB，适配出厂 32MiB 的 boot 分区 */
+            data = /incbin/("arch/arm64/boot/Image.gz");
+            type = "kernel";
+            arch = "arm64";
+            os = "linux";
+            compression = "gzip";
+            load = <0x04080000>;
+            entry = <0x04080000>;
+            hash {
+                algo = "sha256";
+            };
+        };
+
+        fdt {
+            description = "GEC RK3568 device tree (rk3568-gec-v11)";
+            data = /incbin/("arch/arm64/boot/dts/rockchip/rk3568-gec-v11.dtb");
+            type = "flat_dt";
+            arch = "arm64";
+            compression = "none";
+            load = <0x08300000>;
+            hash {
+                algo = "sha256";
+            };
+        };
+    };
+
+    configurations {
+        default = "conf";
+        conf {
+            description = "GEC RK3568 with mainline kernel (rk3568-gec-v11)";
+            kernel = "kernel";
+            fdt = "fdt";
+        };
+    };
+};

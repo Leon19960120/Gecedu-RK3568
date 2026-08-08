@@ -1,139 +1,145 @@
-# GecEdu RK3568 开发板项目
+# GecEdu RK3568 — Linux Bring-up
 
-粤嵌 RK3568 开发板（底板 + 核心板 + 7 寸 LVDS 触摸屏），出厂系统为 Buildroot。
+针对自定义 **GecEdu RK3568 开发板** 进行的 Linux 系统移植与验证项目，覆盖：
 
-> 硬件实际配置：Machine model — Rockchip RK3568 EVB1 DDR4 V10
+- Linux bring-up（主线内核板级启动）
+- Device Tree 适配
+- 外设驱动验证（Ethernet / USB / I2C / IIO / Gadget …）
+- Boot / FIT 镜像研究
+- 后续 Rockchip BSP / RKNPU(RKNN) 研究
 
-## 硬件规格
+> ⚠️ 术语口径：本文档统一使用 **initial board support / mainline bring-up**，
+> 不使用 *full support / completely supported*——显示、Wi-Fi、NPU 等功能尚未完成。
 
-| 组件 | 规格 | 状态 | 备注 |
-|------|------|------|------|
-| SoC | RK3568b2 | ✅ 已验证 | 四核 Cortex-A55, 2.0 GHz |
-| RAM | 2GB LPDDR4 | ✅ 已验证 | 32 位位宽 |
-| 存储 | 16GB eMMC | ✅ 已验证 | `/dev/block/mmcblk2` |
-| 网络 | 千兆以太网 | ✅ 已验证 | 10/100/1000M |
-| USB | 3× USB 2.0 + 1× USB 3.0 + 1× OTG | ✅ 已验证 | OTG 可用于刷机 |
-| 无线 | Wi-Fi 5 (Realtek 8723DS) | ✅ 已验证 | 板载，可搜索网络 |
-| 视频 | HDMI 2.0 + LVDS | ✅ 可用 | LVDS 接 7 寸触摸屏幕 |
-| 音频 | 耳机 + MIC + 蜂鸣器 + SPK | ✅ 可用 | PMIC 集成编解码 |
-| 其他 | SIM 卡槽 / SD 卡槽 / 4G 模组接口 / mSATA | 🔍 待验证 | 功能待驱动验证 |
-| 传感器 | 六轴 MPU6050 / 光环境传感器 | 🔍 待验证 | I2C 接口 |
-| 串口 | 4× UART + 1× Debug UART (1500000 波特率) + 1× CAN | ✅ 已验证 | Debug 用于串口日志 |
+---
 
-详细硬件资源说明见 [粤嵌开发板硬件参考手册](辅助文档/粤嵌开发板硬件参考手册.md)。
+## 1. 项目简介
 
-## 出厂系统
+本项目记录一块粤嵌（Yueqian）定制 RK3568 开发板，从原厂 Buildroot（内核 4.19.232）
+向现代 Linux 内核迁移的完整过程。板子硬件本质是 **Rockchip 官方 EVB1 DDR4 V10** 原版
+（粤嵌未改动设备树），因此主线内核自带 `rk3568-evb1-v10.dts`，核心系统改动较小；
+真正的硬骨头在 7 寸 MIPI-DSI 屏与外设驱动验证。
 
-- 系统：Buildroot，内核 4.19.232
-- 预装 `rk356x_demo`：基于 LVGL 的嵌入式图形测试界面，直接操作帧缓冲 (`/dev/fb0`) 并控制 GPIO 和背光
-- 已知可用的 UBoot 镜像：`RK3568-EVB1-V10-BUILDROOT_V1.3.0_20251220`
+### 仓库分工（重要）
 
-## 目录结构
+| 仓库 | 用途 |
+|------|------|
+| **Gecedu-RK3568**（本仓库） | 项目知识库 / 移植记录：**不保存完整 Linux kernel source** |
+| **Leon19960120/linux** | 真正的 Linux 内核代码（见下方分支） |
 
+---
+
+## 2. 当前两条技术路线
+
+```text
+Mainline Linux 6.18
+→ 学习和验证主线内核板级移植（本仓库当前主线文档）
+
+Rockchip BSP Linux 6.6
+→ 后续完整硬件、RKNPU / RKNN、产品功能路线（规划中）
 ```
-GEC-RK3568/
-├── README.md              ← 本文件
-├── LICENSE                ← MIT 许可证
-├── 辅助文档/               ← 硬件参考手册等文档
-│   └── 粤嵌开发板硬件参考手册.md
+
+- **Mainline 6.18 内核代码**：
+  <https://github.com/Leon19960120/linux/tree/gecedu-rk3568-v6.18>
+  基于 upstream Linux **v6.18**，第一笔板级支持 commit：
+  `arm64: dts: rockchip: add initial support for GecEdu RK3568 board`
+- **Rockchip BSP 6.6**（规划）：后续转入 `rockchip-linux/kernel` 的 `develop-6.6` /
+  自有 `gecedu-rk3568-6.6` 分支，使用 Rockchip RKNPU / RKNN vendor stack。
+
+---
+
+## 3. 当前 Mainline 6.18 状态
+
+| 功能 | 状态 | 说明 |
+|------|------|------|
+| Linux 6.18 boot | ✅ | 外置 FIT + RKDevTool 只烧 boot |
+| UART console | ✅ | `ttyS2,1500000` |
+| eMMC / rootfs | ✅ | 出厂 Buildroot rootfs |
+| 32-bit Buildroot userspace | ✅ | 需 `CONFIG_COMPAT=y`（见 `docs/porting/mainline-6.18/04_rootfs_compat.md`） |
+| Gigabit Ethernet | ✅ | `gmac1`(`fe010000`) / RTL8211F-CG，1Gbps Full（`gmac0`=fe2a0000 当前 DTS 禁用未接 PHY） |
+| USB2 Host | ✅ | `CONFIG_PHY_ROCKCHIP_INNO_USB2=y` |
+| USB3 Host | ✅ | `usb_host0_xhci`(`fcc00000`) + DWC3（2026-08-08 确认；本树无 `usbdp_phy`，USB3 SS phy 为 `combphy0`） |
+| I2C2 | ✅ | M1，SDA GPIO4_B4 / SCL GPIO4_B5 |
+| MPU6050 | ✅ | IIO，0x69（2026-08-08 确认） |
+| BH1750 | ✅ | IIO，0x23，`in_illuminance_raw`（2026-08-08 确认） |
+| ADB Gadget | ⚠️ | kernel gadget 已通，userspace `adbd` 未完全收口 |
+| Display | ⚠️ | framebuffer / display pipeline 未完成 |
+| Wi-Fi RTL8723DS | ❌ | 原 4.19 的 `8723ds.ko` 无法直接用于 6.18 |
+| NPU | ❌ | mainline 6.18 路线暂不继续，转 Rockchip BSP 6.6 |
+
+> NPU 并非单纯“失败”：Mainline Linux 6.18 的 NPU 集成暂缓，后续计划转入
+> **Rockchip Linux 6.6 BSP**，使用 Rockchip RKNPU / RKNN vendor stack。
+
+---
+
+## 4. 仓库结构
+
+```text
+GecEdu-RK3568/
+├── README.md                      ← 本文件
+├── LICENSE
 ├── docs/
-│   ├── development/       ← 开发过程记录与测试文档
-│   │   ├── 01_全记录.md
-│   │   ├── 开发板功能测试.md
-│   │   ├── 按键测试.md
-│   │   ├── 解包boot.md
-│   │   └── ADB模式切换到Loader模式日志.md
-│   └── notes/             ← 技术笔记与排查记录
-│       ├── info-version.md
-│       └── 各设备相关说明.md
-├── logs/                  ← 串口启动日志归档
-│   ├── README.md          ← 日志目录索引（含固件版本对照表）
-│   ├── 0305-DDR训练/      ← 3月5日 DDR 预加载器训练日志
-│   ├── 0306-UBoot启动与故障/ ← 3月6日完整启动流程与故障记录
-│   ├── 0307-对比参考/     ← 正常板基准日志
-│   ├── 硬件替换调试/      ← 更换 boot/UBoot 等组件后的对比
-│   └── 新版本固件/        ← DDR v1.25 最新预加载器日志
-├── hardware/
-│   └── Device Tree/       ← 设备树文件
-│       ├── rk3568.dts
-│       └── rk3568.dtb
-├── scripts/
-│   └── power-key.sh       ← 电源键测试脚本
-├── demo/
-│   └── rk356x-demo_good_board_backup  ← LVGL 图形测试界面备份
-├── uboot/                 ← UBoot 镜像
-│   └── uboot.img
-├── build/
-│   └── MiniLoaderAll.bin  ← 预加载器二进制
-├── rockchip_test/         ← Rockchip 官方硬件测试套件
-│   ├── rockchip_test.sh   ← 总控脚本
-│   ├── NOTICE             ← 测试套件说明
-│   ├── audio/             ← 音频测试
-│   ├── auto_reboot/       ← 自动重启测试
-│   ├── bluetooth/         ← 蓝牙测试
-│   ├── camera/            ← 摄像头测试
-│   ├── cpu/               ← CPU 测试
-│   ├── ddr/               ← DDR 测试
-│   ├── flash_test/        ← 闪存测试
-│   ├── gpu/               ← GPU 测试
-│   ├── recovery_test/     ← Recovery 测试
-│   ├── suspend_resume/    ← 休眠唤醒测试
-│   ├── video/             ← 视频测试
-│   └── wifi/              ← Wi-Fi 测试
-└── assets/                ← 图片资源
-    └── IMG_2742.JPG
+│   ├── hardware/                  ← 板卡硬件资料
+│   │   ├── 01_board_overview.md
+│   │   ├── 02_soc_and_memory.md
+│   │   ├── 03_interface_mapping.md
+│   │   └── 03_keypad_test.md
+│   ├── porting/
+│   │   ├── README.md
+│   │   ├── mainline-6.18/         ← 主线 6.18 移植文档（00~10）
+│   │   └── rockchip-6.6/          ← BSP 6.6 路线（规划）
+│   └── troubleshooting/           ← 分主题排障
+├── porting/
+│   └── mainline-6.18/
+│       ├── boot/fit-image.its     ← FIT 打包描述
+│       └── configs/               ← bring-up checkpoint（*.config）
+├── logs/
+│   └── mainline-6.18/             ← 分主题实机日志（boot/ethernet/usb/i2c）
+├── hardware/Device Tree/          ← 厂内提取的 rk3568.dts / .dtb（参考）
+├── scripts/                       ← 构建 / 测试脚本
+├── rockchip_test/                 ← Rockchip 官方硬件测试套件
+├── 辅助文档/                       ← 厂商硬件手册
+└── demo/ assets/ uboot/ build/    ← 镜像 / 资源
 ```
 
-## 快速开始
+---
+
+## 5. 快速开始
 
 ### 串口调试
-
-- 连接方式：USB Type-C (USB_TTL) → CH340C 转串口
-- 波特率：1500000
-- OTG 接口可用于固件烧写
+- 连接：USB Type-C (USB_TTL) → CH340C 转串口
+- 波特率：**1500000**
+- 控制台：`ttyS2`（换主线后，原厂 `ttyFIQ0` 不再使用）
 
 ### 固件烧写
+进入 Loader 模式后用 Rockchip 工具烧写。参考：
+[docs/porting/mainline-6.18/08_adb_gadget.md](docs/porting/mainline-6.18/08_adb_gadget.md)
 
-通过 OTG 接口将开发板进入 Loader 模式，使用 Rockchip 刷机工具烧写镜像。
-参考：[ADB 模式切换到 Loader 模式日志](docs/development/ADB模式切换到Loader模式日志.md)
+### 构建内核
+见 [docs/porting/mainline-6.18/02_kernel_build.md](docs/porting/mainline-6.18/02_kernel_build.md)
+与 [porting/mainline-6.18/configs/](porting/mainline-6.18/configs/) 中的 working config。
 
-### 硬件测试
+---
 
-```bash
-# 运行完整硬件测试套件
-./rockchip_test/rockchip_test.sh
+## 6. 文档导航
 
-# 或单独测试某项
-cd rockchip_test/audio
-cd rockchip_test/wifi
-# ...
-```
+- **主线 6.18 总览**：[docs/porting/mainline-6.18/00_overview.md](docs/porting/mainline-6.18/00_overview.md)
+- **启动链 / FIT**：[01_boot_chain.md](docs/porting/mainline-6.18/01_boot_chain.md)
+- **内核构建**：[02_kernel_build.md](docs/porting/mainline-6.18/02_kernel_build.md)
+- **设备树**：[03_device_tree.md](docs/porting/mainline-6.18/03_device_tree.md)
+- **rootfs 兼容**：[04_rootfs_compat.md](docs/porting/mainline-6.18/04_rootfs_compat.md)
+- **以太网**：[05_ethernet.md](docs/porting/mainline-6.18/05_ethernet.md)
+- **USB**：[06_usb.md](docs/porting/mainline-6.18/06_usb.md)
+- **I2C / 传感器**：[07_i2c_sensors.md](docs/porting/mainline-6.18/07_i2c_sensors.md)
+- **ADB Gadget**：[08_adb_gadget.md](docs/porting/mainline-6.18/08_adb_gadget.md)
+- **已知问题**：[09_known_issues.md](docs/porting/mainline-6.18/09_known_issues.md)
+- **调试笔记（证据链）**：[10_debug_notes.md](docs/porting/mainline-6.18/10_debug_notes.md)
+- **BSP 6.6 路线**：[docs/porting/rockchip-6.6/00_overview.md](docs/porting/rockchip-6.6/00_overview.md)
+- **硬件资料**：[docs/hardware/](docs/hardware/)
 
-## 固件版本演进
+---
 
-| 固件版本 | 日期 | 说明 |
-|---------|------|------|
-| DDR V1.13 | 2022-02-18 | 早期预加载器 |
-| DDR V1.16 | 2023-03-02 | 中期版本 |
-| DDR V1.18 | 2023-07-17 | 广泛使用 |
-| DDR v1.25 | 2025-12-03 | 最新预加载器 (`5b48980fd7`) |
+## 7. 许可证
 
-## 调试记录
-
-### DDR 训练日志 (2026-03-05 ~ 03-07)
-
-3 月初对开发板进行了系统的 DDR 训练调试，记录了从 V1.13 到 v1.25 多个固件版本的训练数据，对比了正常板与问题板的差异。详见 [logs/README.md](logs/README.md)。
-
-### GPIO 资源
-
-| 引脚 | 功能 |
-|------|------|
-| GPIO 111 | 蜂鸣器 |
-| GPIO 120-124 | 用户 LED |
-| GPIO 40/42 | 按键 UP/DOWN |
-| GPIO 73-84 | 蓝牙控制 |
-| GPIO 98 | 功放控制 (spk-ctl) |
-
-## 许可证
-
-本项目包含 Rockchip 官方测试套件 (`rockchip_test/`)，遵循其自带的 NOTICE 文件中的许可条款。
+本项目包含 Rockchip 官方测试套件（`rockchip_test/`），遵循其自带 `NOTICE` 文件中的许可条款。
+其余文档以 MIT 许可证发布（见 `LICENSE`）。

@@ -1,0 +1,15 @@
+# Ghidra 反编译工程数据库（二进制工作态，非源码，不入库）
+demo/rk356x-demo_good_board_backup_ghidra/
+
+# 本地 agent 状态（本机 memory / 临时脚本，不入库）
+.workbuddy/
+
+# 临时分析脚本
+tmp_*.py
+
+# Ghidra 反编译产物（厂商闭源二进制的派生物，与本仓库 MIT 部分许可边界不清，本地保留不入库）
+# 注意：仅排除机器生成的反编译源码，自写的逆向分析文档 reverse_*.md 照常入库
+docs/development/decompiled_rk356x-demo.c
+
+# 厂商硬件手册（再分发许可未确认，本地保留不入库；已 tracked 的厂商资料留待 THIRD_PARTY.md 审计）
+辅助文档/RK3568硬件说明手册.md
