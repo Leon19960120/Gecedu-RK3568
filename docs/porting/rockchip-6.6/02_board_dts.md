@@ -16,8 +16,8 @@
 
 | 节点 | 来源 | 说明 |
 |------|------|------|
-| `gmac0` reset + 禁用 `gmac1` | 6.18 已验证 | 千兆网 RTL8211F |
-| `usb2phy0/1` + `usb_host0_*` + `usb_host1_*` + `usbdp_phy` | 6.18 已验证 | USB2/USB3 Host |
+| 以太网 `gmac1`/`gmac0` | GEC PORTING TARGET：`gmac1`(`fe010000`) = 当前板载以太网口（启用） / `gmac0`(`fe2a0000`) = 当前 GEC 板级支持未使用，已审原理图未识别到板载 GMAC0 PHY 连接（来源 6.18+schematic+runtime） | BSP-6.6 BASELINE：官方 `develop-6.6` 两口都 `status="okay"`，aliases `ethernet0=&gmac0`/`ethernet1=&gmac1`；GEC BSP-6.6 RUNTIME：尚未验证（千兆网 RTL8211F-CG；**旧稿把 gmac0 当口、gmac1 关掉的写法错误，勿照搬**） |
+| `usb2phy0/1` + `usb_host0_*` + `usb_host1_*` + **`combphy0/combphy1`**（USB3 SS phy 由 combo phy 提供，无上游 usbdp phy 节点） | 6.18 已验证；6.6 待确认 | USB2/USB3 Host |
 | I2C2 + BH1750/MPU6050/EEPROM | 6.18 已验证 | IIO 传感器 |
 | NPU `npu@fde40000` | **BSP 自带** | `drivers/rknpu/`，启用即可（mainline 无） |
 | MIPI-DSI 屏 | **BSP 自带 `panel-simple` 补丁** | 用厂内 `panel-init-sequence` 属性，改 DTS 即点亮（无需自写驱动） |
@@ -39,7 +39,7 @@ mainline 路线需自写 `drm_panel` 驱动（Himax 定制 IC，密码 `B9 F1 12
 ## 4. 待执行 / 待验证
 
 - [ ] fork BSP 6.6，以 `rk3568-evb1-v10.dts` 为基底新建板级 DTS
-- [ ] 复用 6.18 的 gmac0/usb2phy/usbdp_phy 结论
+- [ ] 复用 6.18 的 gmac1/usb2phy/combphy0-1 结论（6.6 节点名/地址可能不同，需重新核对）
 - [ ] 启用 NPU 节点，验证 `rknpu.ko` 加载、`/dev/dri/renderD*` 出现
 - [ ] 屏 DTS 点亮验证（亮屏、无偏移/色偏）
 - [ ] 触摸 GT911 重编模块加载

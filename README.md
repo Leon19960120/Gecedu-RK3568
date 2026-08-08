@@ -56,13 +56,14 @@ Rockchip BSP Linux 6.6
 | UART console | ✅ | `ttyS2,1500000` |
 | eMMC / rootfs | ✅ | 出厂 Buildroot rootfs |
 | 32-bit Buildroot userspace | ✅ | 需 `CONFIG_COMPAT=y`（见 `docs/porting/mainline-6.18/04_rootfs_compat.md`） |
-| Gigabit Ethernet | ✅ | `gmac1`(`fe010000`) / RTL8211F-CG，1Gbps Full（`gmac0`=fe2a0000 当前 DTS 禁用未接 PHY） |
+| Gigabit Ethernet | ✅ | `gmac1`(`fe010000`) = 当前板载以太网口 / RTL8211F-CG，1Gbps Full（`gmac0`(`fe2a0000`) = 当前 GEC 板级支持未使用，已审原理图未识别到板载 GMAC0 PHY 连接） |
 | USB2 Host | ✅ | `CONFIG_PHY_ROCKCHIP_INNO_USB2=y` |
-| USB3 Host | ✅ | `usb_host0_xhci`(`fcc00000`) + DWC3（2026-08-08 确认；本树无 `usbdp_phy`，USB3 SS phy 为 `combphy0`） |
+| USB3 Host | ✅ | `usb_host1_xhci`(@`fd000000`, DWC3 Host) + `combphy1`（USB3 SS phy）；本树无 `usbdp_phy` |
+| USB3 Gadget kernel | ✅ | `usb_host0_xhci`(@`fcc00000`, DWC3 DRD, `dr_mode="peripheral"`+`extcon`) + `combphy0`（USB3 SS phy）；kernel gadget plumbing 已通（configfs+ffs.adb+udc），ADB userspace 见下行 |
 | I2C2 | ✅ | M1，SDA GPIO4_B4 / SCL GPIO4_B5 |
 | MPU6050 | ✅ | IIO，0x69（2026-08-08 确认） |
 | BH1750 | ✅ | IIO，0x23，`in_illuminance_raw`（2026-08-08 确认） |
-| ADB Gadget | ⚠️ | kernel gadget 已通，userspace `adbd` 未完全收口 |
+| ADB userspace | ⚠️ PAUSED | kernel gadget plumbing 已通（见 `USB3 Gadget kernel` 行），userspace `adbd` 未完成基于 FunctionFS 的启动流程（`tcp:5037` blocker） |
 | Display | ⚠️ | framebuffer / display pipeline 未完成 |
 | Wi-Fi RTL8723DS | ❌ | 原 4.19 的 `8723ds.ko` 无法直接用于 6.18 |
 | NPU | ❌ | mainline 6.18 路线暂不继续，转 Rockchip BSP 6.6 |
