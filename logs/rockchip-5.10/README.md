@@ -15,6 +15,17 @@
 | `can/` | SocketCAN 配置与运行测试 |
 | `npu/` | RKNPU probe 与 RKNN inference 日志 |
 
+## 已归档证据
+
+| 证据页 | 内容 |
+|--------|------|
+| `display/logo_vp0_route.md` | DSI 启动 logo 根因（`route_dsi0` 回 VP0）+ U-Boot/内核日志 |
+| `iio/bh1750_iio.md` | BH1750 probe + 实测照度读数（raw/scale/lux） |
+
+（持续归档：新证据按上表格式加一行。）
+
+## 采集脚本
+
 可使用下面两个只读脚本采集一致快照：
 
 ```bash

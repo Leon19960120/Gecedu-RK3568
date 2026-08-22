@@ -104,6 +104,6 @@ source DTS → built DTB → running DTB → bus device/client → driver bind
 ## 8. 工具
 
 - **dtc 反编译**：`dtc -I dtb -O dts -o out.dts in.dtb`（uutils 的 dtc 用 `tail -n N`，不是 `-N`）。
-- **DTB 对比脚本**（当时在 `tmp_boot_cmp/` 里写的，未入库，可考虑 formalize 到 `scripts/`）：`dtb2dts.py`、`dtb_cmp.py`、`dtb_cmp2.py`、`extract_cfg_dtb.py`。
+- **DTB 对比脚本**（已沉淀到 `scripts/dtb/`，用法见 `scripts/dtb/README.md`）：`dtb2dts.py`、`dtb_cmp.py`、`dtb_cmp2.py`、`extract_cfg_dtb.py`、`unpack_boot.py`。
 - **板端只读快照**（已入库）：`scripts/check_bsp_5_10.sh`、`scripts/check_i2c_bindings.sh`。
 - **交叉编译工具链**：全量构建用 `/opt` GCC 15.2（`aarch64-none-linux-gnu-`）；4.19-SDK GCC 6.3.1 只能做轻量任务（全量会被 `CONFIG_WERROR=y` 卡死）。

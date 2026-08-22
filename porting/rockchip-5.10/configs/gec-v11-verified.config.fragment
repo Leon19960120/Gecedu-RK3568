@@ -1,0 +1,30 @@
+# GecEdu RK3568 BSP 5.10 key config fragment
+#
+# Source status:
+# - These options come from project runtime notes and the attached alignment
+#   request, not from a live SDK .config read in this Codex session.
+# - The SDK paths under \\wsl$ were not readable from the current sandbox.
+# - Reconfirm against the active SDK before treating this as an exact defconfig.
+
+# IIO sensors: verified after enabling these options.
+CONFIG_INV_MPU6050_IIO=y
+CONFIG_INV_MPU6050_I2C=y
+CONFIG_BH1750=y
+
+# Goodix touchscreen: verified working-style state from project notes.
+# Recheck if the active tree switched GOODIX to a module.
+CONFIG_TOUCHSCREEN_GOODIX=y
+# CONFIG_TOUCHSCREEN_GT1X is not set
+# CONFIG_TOUCHSCREEN_GT9XX is not set
+
+# RTC: runtime registers rk808-rtc (rtc0) and pcf8563 (rtc1). Both =y in .config and defconfig.
+CONFIG_RTC_DRV_RK808=y
+CONFIG_RTC_DRV_PCF8563=y
+
+# EEPROM: verified — at24 2-0050 (256 byte 24c02). =y in .config and defconfig.
+CONFIG_EEPROM_AT24=y
+
+# CAN: CAN core "device driver interface" verified. CONFIG_CAN_RK3568=y is in the
+# defconfig but NOT in the current .config — can0/can1 have not appeared yet.
+# Enable it to get the RK3568 CAN controller, then verify `ip link` + SocketCAN traffic.
+CONFIG_CAN_RK3568=y
