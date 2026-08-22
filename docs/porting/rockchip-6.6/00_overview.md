@@ -1,6 +1,13 @@
-# Rockchip Linux 6.6 BSP bring-up
+# Rockchip Linux 6.6 BSP 移植规划
 
-> ## ⚠️ Status: PLANNED / NOT YET VERIFIED ON HARDWARE
+> ## ⚠️ 暂缓 / 当前未使用
+>
+> 本路线当前暂缓。现役 BSP bring-up 目标是通过 LubanCat SDK 使用
+> **Rockchip Linux 5.10.209**。
+>
+> 本目录作为未来研究保留。除非后续补充新的硬件证据，否则不要把它当作当前项目路线。
+
+> ## ⚠️ 状态：PLANNED / NOT YET VERIFIED ON HARDWARE
 >
 > 本文描述**计划**中的 Rockchip BSP 6.6 移植路线。除明确标注「6.18 已验证」的事实外，
 > 所有 6.6 板级支持均**未在生产硬件上实测**，不得读作「已跑通」。任何 6.6 相关结论
@@ -20,7 +27,7 @@
 
 ---
 
-## 1. Why BSP 6.6
+## 1. 为什么考虑 BSP 6.6
 
 主线 Linux（任意版本 6.6 / 6.18 / 7.x）**均无 RK3568 NPU 官方驱动**——主线 "Rocket" NPU 驱动仅支持
 RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
@@ -35,7 +42,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 2. Official kernel source
+## 2. 官方内核源码
 
 | 项 | 值 |
 |----|----|
@@ -49,7 +56,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 3. Current project status
+## 3. 当前项目状态
 
 | 项目 | 状态 |
 |------|------|
@@ -62,7 +69,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 4. Facts reusable from mainline 6.18
+## 4. 可从 mainline 6.18 复用的事实
 
 以下在 **mainline 6.18 已实测验证**，换 BSP 6.6 时作为**迁移起点**（DTS 基底不同，需重新核对节点名/地址）：
 
@@ -81,7 +88,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 5. What must be revalidated on BSP 6.6
+## 5. BSP 6.6 上必须重新验证的内容
 
 | 项 | 在 6.18 | 在 6.6 需重新确认 |
 |----|---------|-------------------|
@@ -96,7 +103,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 6. Board DTS porting plan
+## 6. 板级 DTS 移植计划
 
 1. fork `rockchip-linux/kernel` → `develop-6.6`，clone 到本地。
 2. 以官方 `rk3568-evb1-v10.dts` 为基底，新建粤嵌派生 `rk3568-gec-v11.dts`，只增改粤嵌特有部分。
@@ -111,7 +118,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 7. RKNPU / RKNN plan
+## 7. RKNPU / RKNN 计划
 
 - **内核侧（BSP 自带）**：`drivers/rknpu/`，DTS `npu@fde40000`，预期 `rknpu.ko` 加载后 `/dev/dri/renderD128` 出现。
 - **用户态**：`librknnrt`（Rockchip 闭源分发，随 `airockchip/rknn-toolkit2` 获取）+ `rknn-toolkit2` 做模型转换/推理。
@@ -120,7 +127,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 8. Validation milestones
+## 8. 验证里程碑
 
 - [ ] fork `rockchip-linux/kernel` `develop-6.6` 并 clone
 - [ ] 取 BSP defconfig（`arch/arm64/configs/`，如 `rockchip_linux_defconfig`），编译 `Image dtbs`
@@ -136,7 +143,7 @@ RK3588 及更新芯片。项目需要 NPU 推理 → 纯主线不适合。
 
 ---
 
-## 9. Known unknowns
+## 9. 已知未知项
 
 - **VBUS GPIO 冲突（NEEDS RE-VERIFICATION）**：committed DTS `vcc5v0_usb_host`=GPIO0_A6 / `vcc5v0_usb_otg`=GPIO0_A5，
   与 4.19 出厂映射（HOST=A5 / OTG=A6）相反；BSP 6.6 沿用哪份待原理图/实机裁决。
