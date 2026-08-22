@@ -1,6 +1,10 @@
-# Troubleshooting - I2C / IIO 传感器
+# 排障 - I2C / IIO 传感器
 
-> 对应 bring-up 文档：`../porting/mainline-6.18/07_i2c_sensors.md`
+> ⚠️ **历史路线（mainline-6.18）**：本页记录 mainline-6.18 阶段的排障，非当前现役路线。
+> 现役路线是 Rockchip BSP 5.10，IIO 传感器状态见 `../porting/rockchip-5.10/05_i2c_iio_sensors.md`。
+> 6.18 特有结论（如 I2C 频率 NACK、DTS 节点缺失）不要直接套用到 5.10。
+
+> 对应 6.18 bring-up 文档：`../porting/mainline-6.18/07_i2c_sensors.md`
 
 ---
 

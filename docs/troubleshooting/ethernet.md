@@ -1,6 +1,10 @@
-# Troubleshooting - Ethernet / 以太网
+# 排障 - Ethernet / 以太网
 
-> 对应 bring-up 文档：`../porting/mainline-6.18/05_ethernet.md`
+> ⚠️ **历史路线（mainline-6.18）**：本页记录 mainline-6.18 阶段的排障，非当前现役路线。
+> 现役路线是 Rockchip BSP 5.10（Ethernet RTL8211F 已验证，见 `../porting/rockchip-5.10/00_overview.md`）。
+> 6.18 特有结论（如 gmac0/gmac1 命名、reset GPIO 位置）不要直接套用到 5.10。
+
+> 对应 6.18 bring-up 文档：`../porting/mainline-6.18/05_ethernet.md`
 
 ---
 
