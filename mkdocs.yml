@@ -1,0 +1,113 @@
+site_name: GecEdu RK3568 BSP 移植记录
+site_description: Rockchip RK3568 Linux BSP bring-up、Device Tree 适配与 runtime 调试记录。
+site_url: https://leon19960120.github.io/Gecedu-RK3568/
+repo_url: https://github.com/Leon19960120/Gecedu-RK3568
+repo_name: Leon19960120/Gecedu-RK3568
+use_directory_urls: false
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - content.action.edit
+  palette:
+    - scheme: default
+      primary: blue grey
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - scheme: slate
+      primary: blue grey
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - 首页: index.md
+  - BSP 5.10 移植:
+      - 移植索引: porting/README.md
+      - 总览: porting/rockchip-5.10/00_overview.md
+      - 构建与启动: porting/rockchip-5.10/01_build_and_boot.md
+      - Device Tree: porting/rockchip-5.10/02_device_tree.md
+      - MIPI-DSI 显示: porting/rockchip-5.10/03_display_mipi_dsi.md
+      - GT911 触摸屏: porting/rockchip-5.10/04_touchscreen_gt911.md
+      - I2C / IIO 传感器: porting/rockchip-5.10/05_i2c_iio_sensors.md
+      - RTC / EEPROM: porting/rockchip-5.10/06_rtc_eeprom.md
+      - 输入 / PMIC / 休眠: porting/rockchip-5.10/07_input_pmic_suspend.md
+      - CAN: porting/rockchip-5.10/08_can.md
+      - NPU: porting/rockchip-5.10/09_npu.md
+      - 已知问题: porting/rockchip-5.10/10_known_issues.md
+      - 调试方法论: porting/rockchip-5.10/11_debug_methodology.md
+      - WiFi RTL8723DS: porting/rockchip-5.10/12_wifi_rtl8723ds.md
+  - DTS 移植方法论: porting/dts_porting_methodology.md
+  - 历史路线:
+      - Rockchip 6.1:
+          - 总览: porting/rockchip-6.1/00_overview.md
+          - DTS override: porting/rockchip-6.1/01_dts_override.md
+          - NPU warm-reset: porting/rockchip-6.1/02_npu_pd_warm_reset.md
+      - Mainline 6.18:
+          - 总览: porting/mainline-6.18/00_overview.md
+          - 启动链与 FIT: porting/mainline-6.18/01_boot_chain.md
+          - 内核构建: porting/mainline-6.18/02_kernel_build.md
+          - Device Tree: porting/mainline-6.18/03_device_tree.md
+          - Rootfs 兼容: porting/mainline-6.18/04_rootfs_compat.md
+          - Ethernet: porting/mainline-6.18/05_ethernet.md
+          - USB: porting/mainline-6.18/06_usb.md
+          - I2C 传感器: porting/mainline-6.18/07_i2c_sensors.md
+          - ADB Gadget: porting/mainline-6.18/08_adb_gadget.md
+          - 已知问题: porting/mainline-6.18/09_known_issues.md
+          - 调试笔记: porting/mainline-6.18/10_debug_notes.md
+      - Rockchip 6.6 暂缓:
+          - 暂缓说明: porting/rockchip-6.6/DEFERRED.md
+          - 总览: porting/rockchip-6.6/00_overview.md
+          - BSP 获取与构建: porting/rockchip-6.6/01_bsp_setup.md
+          - 板级 DTS 计划: porting/rockchip-6.6/02_board_dts.md
+          - RKNPU / RKNN 计划: porting/rockchip-6.6/03_rknpu_rknn.md
+  - 硬件:
+      - 板卡总览: hardware/01_board_overview.md
+      - SoC 与内存: hardware/02_soc_and_memory.md
+      - 接口映射: hardware/03_interface_mapping.md
+      - 按键测试: hardware/03_keypad_test.md
+  - 排障:
+      - 启动: troubleshooting/boot.md
+      - Ethernet: troubleshooting/ethernet.md
+      - USB: troubleshooting/usb.md
+      - I2C: troubleshooting/i2c.md
+  - 开发笔记:
+      - LubanCat SDK 构建: development/lubancat_sdk_build.md
+      - boot 镜像对比: development/boot_cmp/boot_compare_report.md
+      - boot 解包: development/解包boot.md
+      - 逆向索引: development/reverse_index.md
+      - 逆向函数: development/reverse_functions.md
+      - strings 笔记: development/strings rk356x-demo_good_board_backup.md
+  - 随手笔记:
+      - 可安全 cat 的设备: notes/✅ 可以安全 cat（或有限 cat）的设备.md
+      - 可写目录软链接方案: notes/✅ 替代方案：把软链接创建到可写目录.md
+      - 触摸屏与光传感器笔记: notes/触摸屏获取不到真实光传感器的值.md
+      - 蜂鸣器 GPIO/DTS 方案: notes/蜂鸣器GPIO控制与DTS方案.md
+  - 日志: logs.md
