@@ -1,5 +1,8 @@
 # 01 - 板卡硬件总览（Board Overview）
 
+> ⚠️ 本页主要沉淀 FACTORY-4.19 与 MAINLINE-6.18 阶段的硬件识别结论。
+> 当前现役 Bring-up 路线请以 `../porting/rockchip-5.10/` 为准；若两者冲突，按证据标签区分，不直接覆盖历史事实。
+
 > 目标：用一篇把"板子是什么、有什么"说清，作为后续移植文档的起点。
 > 板子本质是 Rockchip 官方 EVB 原版，粤嵌零改设备树——这是本项目难度可控的根本原因。
 
@@ -50,7 +53,7 @@
 | EEPROM BL24C02F | I2C2 | 原理图 U301，接 `I2C2_SDA_M1`/`I2C2_SCL_M1`；I2C 地址 NEEDS VERIFICATION（不预设 0x50） | **SCHEMATIC 明示，committed DTS 未建模**；非 invented | SCHEMATIC / NOT MODELED IN CURRENT DTS |
 | RTC PCF8563 | I2C | — | `/dev/rtc`；4.19 出厂 DTB 有，6.18 DTS 待核 | FACTORY-4.19 / 待核 |
 | SARADC | 片上 | `fe720000` | 供 adc-keys（4 个 ADC 按键） | FACTORY-4.19 |
-| 蜂鸣器 | GPIO | `gpio111`（GPIO2 系） | 高有效 | FACTORY-4.19 |
+| 蜂鸣器 | GPIO | `gpio111`（GPIO3_B7） | 高有效 | FACTORY-4.19 |
 | LED ×4 | GPIO | `gpio120/121/123/124` | 高有效 | FACTORY-4.19 |
 | 按键 ×6 | GPIO / ADC | `gpio_keys_polled` + `adc-keys` | 4 个 ADC 模拟 + 2 个 GPIO | FACTORY-4.19 |
 | Wi-Fi/BT RTL8723DS | SDIO + UART | `sdmmc1` + `uart8`(ttyS8) | Fn-Link FG6223 | FACTORY-4.19 / INFERRED |
