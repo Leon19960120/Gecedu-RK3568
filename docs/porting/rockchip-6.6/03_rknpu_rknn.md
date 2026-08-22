@@ -1,4 +1,7 @@
-# 03 - RKNPU 驱动 / RKNN Runtime / Toolkit2（规划）
+# 03 - RKNPU 驱动 / RKNN 运行时 / Toolkit2（规划）
+
+> ⚠️ **暂缓**：本路线当前暂缓。现役 bring-up 目标为 Rockchip BSP Linux 5.10.209。
+> 本文保留为未来研究资料；不要据此宣称当前 BSP 5.10 NPU 已完成。
 
 > ⚠️ **规划文档，尚未实测。** 这是转 BSP 6.6 的首要动机：在 RK3568 上跑 NPU 推理。
 > 未实测成功前不写为"已完成"。
@@ -31,7 +34,7 @@ ls /dev/dri/renderD*
 
 ---
 
-## 3. 用户态：RKNN Runtime + Toolkit2
+## 3. 用户态：RKNN 运行时 + Toolkit2
 
 NPU 计算需用户态库：
 

@@ -1,6 +1,10 @@
-# Troubleshooting - USB
+# 排障 - USB
 
-> 对应 bring-up 文档：`../porting/mainline-6.18/06_usb.md`（含完整 DTS 补丁与原理）。
+> ⚠️ **历史路线（mainline-6.18）**：本页记录 mainline-6.18 阶段的排障，非当前现役路线。
+> 现役路线是 Rockchip BSP 5.10（USB2/USB3 已验证，见 `../porting/rockchip-5.10/00_overview.md`）。
+> 6.18 特有结论（如 `usbdp_phy` 不存在、`combphy` 启用、`dr_mode` 抖动）不要直接套用到 5.10。
+
+> 对应 6.18 bring-up 文档：`../porting/mainline-6.18/06_usb.md`（含完整 DTS 补丁与原理）。
 > 权威 USB 映射见 `../porting/mainline-6.18/03_device_tree.md` §2.2（committed DTS = current software state）。
 
 ---

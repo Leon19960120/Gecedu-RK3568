@@ -118,7 +118,7 @@ gpiochip4: GPIOs 128-159, parent: platform/fe770000.gpio, gpio4:
 > 注意与 6.18 committed DTS（OTG=A5 / HOST=A6）方向相反，详见本页顶部 VBUS 冲突说明。
 > 蜂鸣器 `gpio111`、LED `gpio120/121/123/124` 等为 4.19 内核 GPIO 编号，6.18 下需以 committed DTS 重新核对（Evidence: FACTORY-4.19）。
 
- 粤嵌RK3568 开发板上有配备 6个按键。其中 4 个按键是用 ADC0 模拟，按键按下去 ADC0 有不同的电压变化。  
+ 粤嵌RK3568 开发板上有 6 个按键（硬件手册口径）：**4 个用户键 = 2 个 ADC 按键（vol±，`adc-keys` 驱动，对应 `event3`）+ 2 个 GPIO 按键（UP/DOWN，`gpio_keys_polled`，对应 `event0`）**，外加 POWER ON 与 RESET。**不存在「4 个 ADC 键」**——`adc-keys` 只挂 vol± 两个按键，DTS 配置完整、无缺失（见 `.workbuddy/memory/2026-08-16.md` 权威来源核对）。  
 
 在开发板串口终端下运行以下命令进行测试，然后输入数字“7”，因为按键事件为 event7。如需要停止测试按 Ctrl + c。 请按下开发板上的以上四个键，请不要按到其他键，如复位键 REST等。
 
