@@ -2,6 +2,8 @@
 
 > 状态：SARADC、MPU6050、BH1750 均为 `[BSP-5.10 RUNTIME VERIFIED]`。
 
+![BSP 5.10 板载低速外设地图](../../assets/hardware/bsp5.10-low-speed-device-map.png)
+
 ## 已验证设备
 
 | 设备 | 总线 / 地址 | 子系统 | 证据 |

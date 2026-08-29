@@ -1,6 +1,6 @@
 # 00 - Rockchip BSP 5.10 移植总览
 
-> 状态：**当前现役路线**  
+> 状态：**并行维护 BSP 路线**
 > 证据模型：统一使用 `[BSP-5.10 RUNTIME VERIFIED]`、`[BSP-5.10 DTS VERIFIED]`、`[PENDING]`、`[NEEDS VERIFICATION]`、`[SUPERSEDED]` 等标签。
 
 ## 范围
@@ -47,6 +47,6 @@
 - `[PENDING]` Camera 链：需真实 sensor 采集跑通才能标记 verified；EVB sensor 报错作为板级差异记录。
 - `[NEEDS VERIFICATION]` Headset 与 RK817 battery / charger warning 需要最终硬件和 DTS 决策。
 
-## 历史路线关系
+## 与其它路线的关系
 
-Mainline 6.18 仍作为历史学习路线保留。Rockchip BSP 6.6 作为暂缓研究路线保留。二者都不应被删除，也不应被改写为 BSP 5.10 的运行事实。
+Rockchip BSP 5.10 与 BSP 6.1 同等维护，各自保存运行证据和开放问题。Mainline 6.18 作为参考路线保留，Rockchip BSP 6.6 作为暂缓研究路线保留；其它路线的结论都不应改写为 BSP 5.10 的运行事实。

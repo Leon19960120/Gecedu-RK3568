@@ -2,6 +2,8 @@
 
 > 状态：混合状态。每个节点都要分别判断 DTS、bind、subsystem 和 runtime evidence。
 
+![BSP 5.10 DTS include 层级](../../assets/dts/bsp5.10-dts-include-chain.png)
+
 ## 当前 DTS
 
 当前目标文件：

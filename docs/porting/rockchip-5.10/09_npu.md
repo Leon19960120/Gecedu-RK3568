@@ -2,6 +2,8 @@
 
 RK3568 NPU 是当前选择 Rockchip BSP 5.10 而不是 mainline Linux 的重要原因之一。不过，文档中的状态要分层记录：kernel driver probe 成功不等于 RKNN 用户态推理已经完整跑通。
 
+![BSP 5.10 NPU 内核与用户态验证边界](../../assets/npu/bsp5.10-npu-verification-stack.png)
+
 ## 当前状态
 
 | 层级 | 状态 | 证据 |

@@ -23,4 +23,4 @@
 | Stale DTB path | `[SUPERSEDED]` | 运行时 model 显示 EVB1 说明 DTB 错误或过期，不代表目标 GEC bring-up。 |
 | DSI route VP 冲突 | `[SUPERSEDED]` | `route_dsi0` 曾误接 `vp1_out_dsi0`，与 `route_hdmi` 的 VP1 分配冲突；现已改回 `vp0_out_dsi0`，U-Boot logo 成功。 |
 
-旧的 6.18 和 6.6 笔记继续保留。遇到结论冲突时，应标成历史路线或暂缓路线，不要改写为 BSP 5.10 事实。
+Mainline 6.18 参考笔记和 BSP 6.6 暂缓笔记继续保留。遇到结论冲突时，应标明具体内核路线，不要改写为 BSP 5.10 事实；BSP 6.1 的状态由其独立文档维护。

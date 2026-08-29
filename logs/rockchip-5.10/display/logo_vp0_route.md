@@ -2,6 +2,8 @@
 
 状态：`[BSP-5.10 RUNTIME VERIFIED]`
 
+![BSP 5.10 VOP2 显示路由与 Logo 接力](../../../docs/assets/display/bsp5.10-vop2-logo-handoff.png)
+
 ## 结论
 
 启动 logo 已成功显示。根因是 VOP route 分配错误：`route_dsi0` 曾被写到 VP1，与 HDMI route 的 VP1 分配冲突。修复为 DSI0 使用 VP0，HDMI 使用 VP1 后，U-Boot 阶段 DSI 初始化与 logo 显示恢复。

@@ -64,12 +64,21 @@ nav:
       - 已知问题: porting/rockchip-5.10/10_known_issues.md
       - 调试方法论: porting/rockchip-5.10/11_debug_methodology.md
       - WiFi RTL8723DS: porting/rockchip-5.10/12_wifi_rtl8723ds.md
+  - BSP 6.1 移植:
+      - 总览: porting/rockchip-6.1/00_overview.md
+      - DTS override: porting/rockchip-6.1/01_dts_override.md
+      - NPU warm-reset: porting/rockchip-6.1/02_npu_pd_warm_reset.md
+      - 启动验证 2026-08-24: porting/rockchip-6.1/03_boot_verify_2026-08-24.md
+      - fbdev / HDMI / LVGL 2026-08-27: porting/rockchip-6.1/04_fbdev_hdmi_lvgl_2026-08-27.md
+      - 内核裁剪与验证日志: porting/rockchip-6.1/05_kernel_trim_validation_log.md
+      - USB 图解: porting/rockchip-6.1/06_usb_visual_guide.md
+      - Wi-Fi RTL8723DS / rtw88: porting/rockchip-6.1/07_wifi_rtl8723ds_rtw88_2026-08-29.md
+      - CAN1 / SocketCAN 2026-08-29: porting/rockchip-6.1/08_can_rk3568_2026-08-29.md
+      - Bluetooth RTL8723DS / UART8: porting/rockchip-6.1/09_bluetooth_rtl8723ds_uart8_2026-08-29.md
+      - 启动日志问题审计 2026-08-29: porting/rockchip-6.1/10_boot_log_issue_audit_2026-08-29.md
+      - 6.1 折腾记录: porting/rockchip-6.1/gec_6.1_折腾记录.md
   - DTS 移植方法论: porting/dts_porting_methodology.md
-  - 历史路线:
-      - Rockchip 6.1:
-          - 总览: porting/rockchip-6.1/00_overview.md
-          - DTS override: porting/rockchip-6.1/01_dts_override.md
-          - NPU warm-reset: porting/rockchip-6.1/02_npu_pd_warm_reset.md
+  - 参考与暂缓路线:
       - Mainline 6.18:
           - 总览: porting/mainline-6.18/00_overview.md
           - 启动链与 FIT: porting/mainline-6.18/01_boot_chain.md

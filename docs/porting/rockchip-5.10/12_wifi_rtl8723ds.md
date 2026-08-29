@@ -9,7 +9,7 @@
 | `8723ds.ko` 编译 | `[BSP-5.10 RUNTIME VERIFIED]` | 产物 `8723ds.ko`（4.4 MB，aarch64，vermagic `5.10.209 SMP mod_unload aarch64`） |
 | SDIO 卡识别 | `[BSP-5.10 RUNTIME VERIFIED]` | dmesg `RTW: == SDIO Card Info ==` + `card: 00000000daf42ca2`，`clock: 50000000 Hz` |
 | `wlan0` / `p2p0` 网卡 | `[BSP-5.10 RUNTIME VERIFIED]` | `RTW: module init ret=0`，`ifconfig -a` 出现 `wlan0`（`70:68:71:ec:10:66`）与 `p2p0` |
-| WiFi 扫描/联网 | `[PENDING]` | 还需 `iw` / `wpa_supplicant` 扫到 AP 并完成关联 |
+| WiFi 扫描/联网 | `[MANUAL WRITTEN, PENDING-VERIFY]` | 操作手册见「运行态操作手册」（第 0–7 步）；板上实测待回填 |
 | BT（UART8） | `[PENDING]` | 本文只覆盖 WiFi 侧；BT 走 `hci_uart` + `BT_HCIUART_RTL`，另行跟进 |
 
 ## 背景
@@ -188,7 +188,151 @@ dmesg | tail -30
 ifconfig -a
 ```
 
+## 运行态操作手册：从 wlan0 到能上网
+
+> 前置：已完成上面「编译流程」并 `insmod 8723ds.ko`，`ifconfig -a` 能看到 `wlan0`。
+> 内核已开 `CONFIG_CFG80211=y` / `CONFIG_MAC80211=y` / `CONFIG_WIRELESS_EXT=y`（已核实），所以 `iw` 与 `wpa_supplicant` 的用户态路径可用。
+> 标 `[PENDING-VERIFY]` 的输出为**尚未在板上实采**、按已知行为预填，待实测后回填。
+
+### 第 0 步：确认板上用户态工具
+
+RTL8723DS 驱动只负责把 `wlan0` 拉起来；**扫描/关联/拿 IP 全部靠用户态工具**。先查板子有没有：
+
+```bash
+# 板上执行
+which iw wpa_supplicant wpa_cli udhcpc 2>/dev/null
+ls -l /usr/sbin/iw /usr/sbin/wpa_supplicant /sbin/udhcpc 2>/dev/null
+```
+
+- `iw`：扫描、看链路状态（需要 `nl80211`，即上面的 CFG80211）
+- `wpa_supplicant` + `wpa_cli`：WPA/WPA2 个人版关联（RTL8723DS 不支持裸 open 以外的加密，几乎必须）
+- `udhcpc`：busybox 自带 DHCP 客户端（LubanCat rootfs 通常已有）
+
+> **SDK 现状**：`lubancat-linux-sdk/buildroot` 里**没有** `wpa_supplicant` / `iw` 包（已核实 `buildroot/package/` 下不存在）。所以板子出厂 rootfs 大概率**缺这两个**。
+> 两种补法：
+> 1. **交叉编译** `iw` 和 `wpa_supplicant`（依赖 `libnl`，iw 还需要 `libnl-3`/`libnl-genl-3`），拷到板子 `/usr/sbin/`。
+> 2. 若 SDK 用的是其它 rootfs（Debian/Ubuntu 基底），直接 `apt-get install iw wpasupplicant` 或 `udhcpc` 对应包。
+>
+> 下面步骤假设工具已就位；缺哪一步命令报 `command not found` 就回到这里补。
+
+### 第 1 步：确认 rfkill 没把 WiFi 锁死
+
+RTL8723DS 走 Rockchip 的 `[WLAN_RFKILL]`（加载驱动时 `wifi turn on power [GPIO-1-0]` 已证明上电）。仍确认一下软/硬阻塞：
+
+```bash
+rfkill list
+# 期望：看到 Wireless LAN，soft/hard 都是 no（或 unblocked）
+rfkill unblock all   # 若被 blocked，先解
+```
+
+若 `rfkill` 命令本身不存在，可跳过——驱动加载日志已显示上电成功，通常无需额外解阻塞。
+
+### 第 2 步：把 wlan0 拉 up（不配 IP）
+
+```bash
+ip link set wlan0 up
+ip link show wlan0
+# 期望：<BROADCAST,MULTICAST,UP,LOWER_UP> ... state UP
+dmesg | tail -5
+# 期望：RTW: nolinked power save leave 之类，无 error
+```
+
+> 若 `ip link set wlan0 up` 后立刻 `RTW: ... disconnect` 或没 `LOWER_UP`，先查天线/SDIO 时钟；但本驱动 SDIO clock 已 50MHz 且 card info 正常，通常不是这里的问题。
+
+### 第 3 步：扫描 AP（iw）
+
+```bash
+iw dev wlan0 scan | grep -E "SSID|signal|freq" | head -40
+# 期望：列出周围 AP 的 SSID / 信号强度 / 频段
+# [PENDING-VERIFY] 例：
+#   SSID: MyRouter_2.4G
+#   signal: -45 dBm
+#   freq: 2437 MHz
+```
+
+- 扫不到任何 SSID：先确认路由器是 **2.4GHz**（RTL8723DS 不支持 5GHz）；再 `iw dev wlan0 info` 看 `wiphy` / `channel` 是否正常。
+- `iw: command not found`：回到第 0 步补 `iw`。
+
+> 也可用 `iwlist wlan0 scan`（wireless-tools，依赖 WIRELESS_EXT，内核已开）。
+
+### 第 4 步：写 wpa_supplicant 配置并关联
+
+```bash
+# 板上创建配置（SSID/密码替换成你的）
+cat > /etc/wpa_supplicant.conf <<'EOF'
+ctrl_interface=/var/run/wpa_supplicant
+update_config=1
+
+network={
+    ssid="你的SSID"
+    psk="你的密码"
+    key_mgmt=WPA-PSK
+}
+EOF
+
+# 后台启动（-B 守护，-i 接口，-c 配置，-D 驱动后端用 nl80211）
+wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf -D nl80211,wext
+# 期望：无 fatal，后台静默；看日志：
+wpa_cli -i wlan0 status
+# [PENDING-VERIFY] 期望出现：
+#   wpa_state=COMPLETED
+#   ssid=你的SSID
+#   pairwise_cipher=CCMP
+#   key_mgmt=WPA2-PSK
+```
+
+关联失败排查：
+
+| 现象 | 原因 / 处理 |
+|------|------------|
+| `wpa_state=SCANNING` 卡住 | SSID 隐藏 / 密码错 → 检查 `wpa_cli` 的 `CTRL-EVENT-*` 日志 |
+| `nl80211 not found` | 驱动后端换 `-D wext`（内核有 WIRELESS_EXT） |
+| 一直 `ASSOCIATING` 失败 | 路由器是 WPA3 或个人版不支持 → 确认是 WPA2-PSK |
+| `wpa_supplicant: command not found` | 第 0 步补包 |
+
+### 第 5 步：拿 IP（udhcpc）
+
+```bash
+# busybox udhcpc（LubanCat rootfs 通常自带）
+udhcpc -i wlan0 -t 10 -n
+# 期望：
+#   Sending discover...
+#   Sending select for 192.168.x.x...
+#   Lease of 192.168.x.x obtained, lease time N
+ip addr show wlan0
+# 期望：inet 192.168.x.x/24
+```
+
+> 若 rootfs 是 Debian 基底，用 `dhclient wlan0` 或 `systemctl restart networking` 替代 `udhcpc`。
+
+### 第 6 步：验证连通
+
+```bash
+# 网关（从 ip route 看）
+ip route show default
+# 期望：default via 192.168.x.1 dev wlan0
+
+ping -c 3 192.168.x.1      # 先 ping 网关
+ping -c 3 8.8.8.8          # 再 ping 外网（需 DNS，见下）
+# 若外网不通但网关通：检查 /etc/resolv.conf 是否有 nameserver
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+
+### 第 7 步：开机自启（可选，固化）
+
+把第 4、5 步做成板子启动脚本（或在 `/etc/network/interfaces`、`systemd`/`procd` 里配 `wlan0` + `wpa_supplicant + udhcpc`）。驱动 `8723ds.ko` 建议放到 `/system/lib/modules/` 或 `/lib/modules/$(uname -r)/` 并在启动早期 `insmod`（注意 vermagic 必须匹配 `5.10.209`）。
+
+### 实测回填区
+
+| 步骤 | 实测命令输出 | 日期 |
+|------|-------------|------|
+| 第 3 步 扫描 | `[PENDING-VERIFY]` | — |
+| 第 4 步 关联 `wpa_cli status` | `[PENDING-VERIFY]` | — |
+| 第 5 步 拿 IP | `[PENDING-VERIFY]` | — |
+| 第 6 步 ping 网关/外网 | `[PENDING-VERIFY]` | — |
+
+> 后续在板上跑通后，把真实输出替换 `[PENDING-VERIFY]` 并填日期，这节就从「手册」变成「已验证证据」。
+
 ## 后续（未完成）
 
-- WiFi 扫描/关联：用 `iw` / `wpa_supplicant` 完成扫 AP、关联、`udhcpc` 拿 IP。
 - BT：UART8 + `hci_uart` + `BT_HCIUART_RTL` + `SERIAL_DEV_BUS` / `SERIAL_DEV_CTRL_TTYPORT`，DTS 侧沿用 Rockchip BSP 的 `rfkill-bluetooth` 节点（boot log 已证明 `[BT_RFKILL]` 存在且工作，勿改 DTS 绑定）。

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">BSP 5.10 DTS include 层级</title>
+  <desc id="desc">rk3568-gec-v11-linux.dts 包含板级 dtsi、Linux 通用 dtsi 和 VOP binding，板级 dtsi 再包含 rk3568.dtsi 与 rk3568-evb-gec.dtsi。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#475569"/>
+    </marker>
+    <style>
+      .text { font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #172033; }
+      .title { font-size: 48px; font-weight: 700; }
+      .subtitle { font-size: 24px; fill: #526079; }
+      .file { font-family: Consolas, "Microsoft YaHei", monospace; font-size: 25px; font-weight: 700; }
+      .note { font-size: 21px; fill: #526079; }
+      .badge { font-size: 18px; font-weight: 700; }
+      .output { font-size: 27px; font-weight: 700; fill: #075985; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f8fafc"/>
+  <text class="text title" x="800" y="66" text-anchor="middle">BSP 5.10 DTS include 层级</text>
+  <text class="text subtitle" x="800" y="106" text-anchor="middle">当前入口：rk3568-gec-v11-linux.dts</text>
+
+  <rect x="465" y="150" width="670" height="112" rx="8" fill="#ecfdf5" stroke="#15803d" stroke-width="3"/>
+  <rect x="490" y="170" width="108" height="30" rx="6" fill="#bbf7d0"/>
+  <text class="text badge" x="544" y="192" text-anchor="middle" fill="#166534">顶层入口</text>
+  <text class="text file" x="800" y="220" text-anchor="middle">rk3568-gec-v11-linux.dts</text>
+  <text class="text note" x="800" y="250" text-anchor="middle">汇总板级层、Linux 通用层与显示 binding</text>
+
+  <line x1="800" y1="263" x2="800" y2="304" stroke="#475569" stroke-width="5"/>
+  <line x1="370" y1="304" x2="1230" y2="304" stroke="#475569" stroke-width="5"/>
+  <line x1="370" y1="304" x2="370" y2="342" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="800" y1="304" x2="800" y2="342" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="1230" y1="304" x2="1230" y2="342" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="80" y="355" width="580" height="118" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="3"/>
+  <rect x="104" y="374" width="110" height="30" rx="6" fill="#bfdbfe"/>
+  <text class="text badge" x="159" y="396" text-anchor="middle" fill="#1d4ed8">板级层</text>
+  <text class="text file" x="370" y="427" text-anchor="middle">rk3568-gec-v11.dtsi</text>
+  <text class="text note" x="370" y="458" text-anchor="middle">route_dsi0、SDMMC1、CAN 等</text>
+
+  <rect x="690" y="355" width="220" height="118" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+  <text class="text file" x="800" y="412" text-anchor="middle">rk3568-</text>
+  <text class="text file" x="800" y="442" text-anchor="middle">linux.dtsi</text>
+  <text class="text note" x="800" y="466" text-anchor="middle">Linux 通用层</text>
+
+  <rect x="940" y="355" width="580" height="118" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+  <text class="text file" x="1230" y="416" text-anchor="middle">rockchip_vop.h</text>
+  <text class="text note" x="1230" y="454" text-anchor="middle">dt-bindings/display</text>
+
+  <line x1="370" y1="474" x2="370" y2="520" stroke="#475569" stroke-width="5"/>
+  <line x1="225" y1="520" x2="515" y2="520" stroke="#475569" stroke-width="5"/>
+  <line x1="225" y1="520" x2="225" y2="558" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="515" y1="520" x2="515" y2="558" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="80" y="570" width="290" height="110" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+  <text class="text file" x="225" y="622" text-anchor="middle">rk3568.dtsi</text>
+  <text class="text note" x="225" y="655" text-anchor="middle">SoC 基线</text>
+
+  <rect x="405" y="570" width="510" height="110" rx="8" fill="#ecfdf5" stroke="#15803d" stroke-width="3"/>
+  <rect x="429" y="588" width="108" height="30" rx="6" fill="#bbf7d0"/>
+  <text class="text badge" x="483" y="610" text-anchor="middle" fill="#166534">GEC 内容</text>
+  <text class="text file" x="660" y="633" text-anchor="middle">rk3568-evb-gec.dtsi</text>
+  <text class="text note" x="660" y="664" text-anchor="middle">基础外设、route_hdmi 等</text>
+
+  <line x1="800" y1="474" x2="800" y2="716" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 10"/>
+  <line x1="1230" y1="474" x2="1230" y2="716" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 10"/>
+  <line x1="225" y1="681" x2="225" y2="716" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 10"/>
+  <line x1="660" y1="681" x2="660" y2="716" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10 10"/>
+
+  <rect x="165" y="730" width="1270" height="105" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+  <text class="text output" x="800" y="775" text-anchor="middle">include 合并并编译</text>
+  <text class="text file" x="800" y="814" text-anchor="middle">rk3568-gec-v11-linux.dtb</text>
+
+  <text class="text note" x="800" y="872" text-anchor="middle">source DTS -> built DTB -> running DTB，三层证据必须逐级核对</text>
+</svg>
