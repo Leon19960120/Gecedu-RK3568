@@ -1,7 +1,11 @@
 # 01 - 板卡硬件总览（Board Overview）
 
+![GEC RK3568 V11 板卡正面](../assets/hardware/gec-rk3568-v11-board-front.jpg)
+
+上图用于辨认接口、丝印和主要器件位置；具体信号归属仍以原理图、DTS 和运行时证据为准。
+
 > ⚠️ 本页主要沉淀 FACTORY-4.19 与 MAINLINE-6.18 阶段的硬件识别结论。
-> 当前现役 Bring-up 路线请以 `../porting/rockchip-5.10/` 为准；若两者冲突，按证据标签区分，不直接覆盖历史事实。
+> 当前并行维护 BSP 5.10 与 BSP 6.1；若本页早期硬件识别结论与任一路线冲突，按证据标签和对应运行日志区分，不直接覆盖既有事实。
 
 > 目标：用一篇把"板子是什么、有什么"说清，作为后续移植文档的起点。
 > 板子本质是 Rockchip 官方 EVB 原版，粤嵌零改设备树——这是本项目难度可控的根本原因。
@@ -23,6 +27,12 @@
 
 > 证据：出厂 4.19 `hardware/Device Tree/rk3568.dts`（从出厂 `boot.img` 提取反编译）的 compatible / model 字段，
 > 以及 6.18 启动日志 `[ 0.000000] Machine model: Rockchip RK3568 GEC V1.1 Board`（committed DTS `model` 已改为 GEC V1.1）。
+
+### 实物记录
+
+![GEC RK3568 V11 实物照片](../assets/hardware/gec-rk3568-v11-board-photo.jpg)
+
+这张现场照片保留实际装配、接口朝向和核心板安装状态，适合与上面的标准正面图交叉核对。
 
 ---
 

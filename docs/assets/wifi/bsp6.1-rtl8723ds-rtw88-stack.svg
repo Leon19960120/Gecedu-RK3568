@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">BSP 6.1 RTL8723DS rtw88 验证链路</title>
+  <desc id="desc">展示设备树和 SDIO、五个 rtw88 模块、固件握手以及尚待验证的无线联网步骤。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#51606f"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1f2937" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 38px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #17202a; }
+      .subtitle { font: 400 19px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #5d6875; }
+      .section { font: 700 21px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #28323c; }
+      .name { font: 700 19px Consolas, "Microsoft YaHei", sans-serif; fill: #17202a; }
+      .body { font: 400 16px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #46515c; }
+      .small { font: 400 14px Consolas, "Microsoft YaHei", sans-serif; fill: #596674; }
+      .badge { font: 700 14px Consolas, "Microsoft YaHei", sans-serif; }
+      .arrow-label { font: 600 14px "Microsoft YaHei", sans-serif; fill: #586674; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f6f8fa"/>
+  <rect x="0" y="0" width="1600" height="9" fill="#1976a3"/>
+  <text x="72" y="70" class="title">BSP 6.1 · RTL8723DS / rtw88 验证链路</text>
+  <text x="72" y="104" class="subtitle">把“设备识别、驱动握手、真正联网”拆成三层证据，避免结论越级</text>
+
+  <text x="72" y="158" class="section">1 · 板级与 SDIO</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="180" width="330" height="116" rx="7" fill="#ffffff" stroke="#8aa3b5" stroke-width="2"/>
+    <rect x="435" y="180" width="330" height="116" rx="7" fill="#ffffff" stroke="#8aa3b5" stroke-width="2"/>
+    <rect x="798" y="180" width="330" height="116" rx="7" fill="#ffffff" stroke="#8aa3b5" stroke-width="2"/>
+  </g>
+  <text x="98" y="219" class="name">DTS: sdmmc1</text>
+  <text x="98" y="249" class="body">4-bit SDIO · non-removable</text>
+  <text x="98" y="276" class="small">wifi_chip_type = rtl8723ds</text>
+  <text x="461" y="219" class="name">SDIO 枚举</text>
+  <text x="461" y="249" class="body">控制器与供电时序正常</text>
+  <text x="461" y="276" class="small">mmc2:0001:1</text>
+  <text x="824" y="219" class="name">RTL8723DS</text>
+  <text x="824" y="249" class="body">板载 Wi-Fi / Bluetooth 芯片</text>
+  <text x="824" y="276" class="small">host-wake: GPIO2_PC3 / IRQ 83</text>
+  <line x1="402" y1="238" x2="435" y2="238" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="765" y1="238" x2="798" y2="238" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1173" y="198" width="350" height="80" rx="7" fill="#e7f4f8" stroke="#2a7f9e" stroke-width="2"/>
+  <text x="1200" y="230" class="badge" fill="#17627e">[SDIO ENUMERATED]</text>
+  <text x="1200" y="257" class="body">硬件链路已出现，但尚未等于 Wi-Fi 可用</text>
+
+  <text x="72" y="356" class="section">2 · 内核模块与固件</text>
+  <g filter="url(#shadow)">
+    <rect x="72" y="378" width="245" height="102" rx="7" fill="#ffffff" stroke="#6f8d9f" stroke-width="2"/>
+    <rect x="361" y="378" width="245" height="102" rx="7" fill="#ffffff" stroke="#6f8d9f" stroke-width="2"/>
+    <rect x="650" y="378" width="245" height="102" rx="7" fill="#ffffff" stroke="#6f8d9f" stroke-width="2"/>
+    <rect x="939" y="378" width="245" height="102" rx="7" fill="#ffffff" stroke="#6f8d9f" stroke-width="2"/>
+    <rect x="1228" y="378" width="295" height="102" rx="7" fill="#ffffff" stroke="#6f8d9f" stroke-width="2"/>
+  </g>
+  <text x="96" y="417" class="name">rtw88_core.ko</text>
+  <text x="96" y="447" class="body">mac80211 核心框架</text>
+  <text x="385" y="417" class="name">rtw88_sdio.ko</text>
+  <text x="385" y="447" class="body">SDIO 总线传输层</text>
+  <text x="674" y="417" class="name">rtw88_8723x.ko</text>
+  <text x="674" y="447" class="body">8723 系列公共代码</text>
+  <text x="963" y="417" class="name">rtw88_8723d.ko</text>
+  <text x="963" y="447" class="body">芯片族 + 固件声明</text>
+  <text x="1252" y="417" class="name">rtw88_8723ds.ko</text>
+  <text x="1252" y="447" class="body">SDIO probe 入口</text>
+  <line x1="317" y1="429" x2="361" y2="429" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="606" y1="429" x2="650" y2="429" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="895" y1="429" x2="939" y2="429" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1184" y1="429" x2="1228" y2="429" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="449" y="504" class="arrow-label">首次板端验证：按依赖顺序 insmod</text>
+
+  <g filter="url(#shadow)">
+    <rect x="180" y="548" width="500" height="112" rx="7" fill="#fff7df" stroke="#c79024" stroke-width="2"/>
+    <rect x="828" y="548" width="595" height="112" rx="7" fill="#e7f5ec" stroke="#298a58" stroke-width="2"/>
+  </g>
+  <text x="208" y="586" class="name">rtw8723d_fw.bin</text>
+  <text x="208" y="616" class="body">/lib/firmware/rtw88/ · 28884 bytes</text>
+  <text x="208" y="642" class="small">MD5 ea7a621393871e579bcca1b9539e9639</text>
+  <text x="856" y="586" class="badge" fill="#207347">[DRIVER + FIRMWARE RUNTIME VERIFIED]</text>
+  <text x="856" y="618" class="name">Firmware version 48.0.0, H2C version 0</text>
+  <text x="856" y="645" class="body">SDIO 匹配、模块依赖、固件读取和芯片握手成立</text>
+  <path d="M 1062 480 C 1062 515, 680 515, 680 574" fill="none" stroke="#c79024" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M 680 604 C 755 604, 755 604, 828 604" fill="none" stroke="#51606f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="72" y="726" class="section">3 · 网络功能验收</text>
+  <rect x="72" y="750" width="1451" height="94" rx="7" fill="#fff4e5" stroke="#d5761d" stroke-width="2"/>
+  <text x="102" y="787" class="badge" fill="#a65109">[PENDING]</text>
+  <text x="215" y="787" class="name">wlan0</text>
+  <text x="352" y="787" class="body">→</text>
+  <text x="390" y="787" class="name">扫描 AP</text>
+  <text x="548" y="787" class="body">→</text>
+  <text x="586" y="787" class="name">关联</text>
+  <text x="703" y="787" class="body">→</text>
+  <text x="741" y="787" class="name">DHCP 地址</text>
+  <text x="925" y="787" class="body">→</text>
+  <text x="963" y="787" class="name">网关 ping</text>
+  <text x="1137" y="787" class="body">→</text>
+  <text x="1175" y="787" class="name">外网 ping</text>
+  <text x="102" y="822" class="body">全部取得板端输出后，才可升级为 [WIFI FUNCTION VERIFIED]</text>
+  <text x="1523" y="880" text-anchor="end" class="small">GEC RK3568 V11 · 2026-08-29</text>
+</svg>

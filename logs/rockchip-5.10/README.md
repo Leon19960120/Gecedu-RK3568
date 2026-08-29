@@ -11,7 +11,7 @@
 | `touch/` | Goodix GT911 probe 与 input 注册 |
 | `iio/` | SARADC、MPU6050、BH1750 sysfs 与 dmesg |
 | `rtc/` | RK809 RTC 与 PCF8563 RTC 日志 |
-| `power/` | PowerKey 与 suspend entry 日志 |
+| `power/` | PowerKey 与 suspend entry 日志、电源轨核对 |
 | `can/` | SocketCAN 配置与运行测试 |
 | `npu/` | RKNPU probe 与 RKNN inference 日志 |
 
@@ -21,6 +21,7 @@
 |--------|------|
 | `display/logo_vp0_route.md` | DSI 启动 logo 根因（`route_dsi0` 回 VP0）+ U-Boot/内核日志 |
 | `iio/bh1750_iio.md` | BH1750 probe + 实测照度读数（raw/scale/lux） |
+| `power/regulator_audit.md` | DTS⇄运行时电源轨全量核对（含 vccio_acodec 偏差记录） |
 
 （持续归档：新证据按上表格式加一行。）
 

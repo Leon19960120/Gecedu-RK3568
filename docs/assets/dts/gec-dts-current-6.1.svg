@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">BSP 6.1 当前 DTS 派生层结构</title>
+  <desc id="desc">Rockchip EVB1 三层原版文件分别派生为三层 GEC 文件，共用 rk3568.dtsi、rk356x.dtsi 和 rk3568-linux.dtsi。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#475569"/>
+    </marker>
+    <style>
+      .text { font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #172033; }
+      .title { font-size: 48px; font-weight: 700; }
+      .subtitle { font-size: 24px; fill: #526079; }
+      .column { font-size: 28px; font-weight: 700; }
+      .file { font-family: Consolas, "Microsoft YaHei", monospace; font-size: 25px; font-weight: 700; }
+      .note { font-size: 21px; fill: #526079; }
+      .badge { font-size: 19px; font-weight: 700; }
+      .shared-title { font-size: 26px; font-weight: 700; fill: #075985; }
+      .shared-file { font-family: Consolas, monospace; font-size: 25px; font-weight: 700; fill: #0c4a6e; }
+      .warning { font-size: 25px; font-weight: 700; fill: #9a3412; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="920" fill="#f8fafc"/>
+  <text class="text title" x="800" y="68" text-anchor="middle">BSP 6.1 当前 DTS 派生层结构</text>
+  <text class="text subtitle" x="800" y="108" text-anchor="middle">编译目标：rk3568-evb1-gec-v11-linux.dtb</text>
+
+  <text class="text column" x="370" y="158" text-anchor="middle">Rockchip 原版 EVB1</text>
+  <text class="text column" x="800" y="158" text-anchor="middle">派生对应</text>
+  <text class="text column" x="1230" y="158" text-anchor="middle">GEC 6.1 自有文件</text>
+
+  <g>
+    <rect x="70" y="190" width="600" height="112" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+    <rect x="92" y="208" width="120" height="30" rx="6" fill="#e2e8f0"/>
+    <text class="text badge" x="152" y="230" text-anchor="middle" fill="#475569">复制来源</text>
+    <text class="text file" x="370" y="259" text-anchor="middle">rk3568-evb1-ddr4-v10-linux.dts</text>
+    <text class="text note" x="370" y="289" text-anchor="middle">原版 Linux 顶层</text>
+
+    <line x1="692" y1="246" x2="908" y2="246" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+
+    <rect x="930" y="190" width="600" height="112" rx="8" fill="#ecfdf5" stroke="#15803d" stroke-width="3"/>
+    <rect x="952" y="208" width="120" height="30" rx="6" fill="#bbf7d0"/>
+    <text class="text badge" x="1012" y="230" text-anchor="middle" fill="#166534">GEC 可维护</text>
+    <text class="text file" x="1230" y="259" text-anchor="middle">rk3568-evb1-gec-v11-linux.dts</text>
+    <text class="text note" x="1230" y="289" text-anchor="middle">当前 Linux 顶层入口</text>
+  </g>
+
+  <g>
+    <rect x="70" y="330" width="600" height="112" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+    <rect x="92" y="348" width="120" height="30" rx="6" fill="#e2e8f0"/>
+    <text class="text badge" x="152" y="370" text-anchor="middle" fill="#475569">复制来源</text>
+    <text class="text file" x="370" y="399" text-anchor="middle">rk3568-evb1-ddr4-v10.dtsi</text>
+    <text class="text note" x="370" y="429" text-anchor="middle">原版 EVB1 板级层</text>
+
+    <line x1="692" y1="386" x2="908" y2="386" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+
+    <rect x="930" y="330" width="600" height="112" rx="8" fill="#ecfdf5" stroke="#15803d" stroke-width="3"/>
+    <rect x="952" y="348" width="120" height="30" rx="6" fill="#bbf7d0"/>
+    <text class="text badge" x="1012" y="370" text-anchor="middle" fill="#166534">GEC 可维护</text>
+    <text class="text file" x="1230" y="399" text-anchor="middle">rk3568-evb1-gec-v11.dtsi</text>
+    <text class="text note" x="1230" y="429" text-anchor="middle">V11 板级中间层</text>
+  </g>
+
+  <g>
+    <rect x="70" y="470" width="600" height="112" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3"/>
+    <rect x="92" y="488" width="120" height="30" rx="6" fill="#e2e8f0"/>
+    <text class="text badge" x="152" y="510" text-anchor="middle" fill="#475569">替代层级</text>
+    <text class="text file" x="370" y="539" text-anchor="middle">rk3568-evb.dtsi</text>
+    <text class="text note" x="370" y="569" text-anchor="middle">原版 EVB 通用层</text>
+
+    <line x1="692" y1="526" x2="908" y2="526" stroke="#475569" stroke-width="5" marker-end="url(#arrow)"/>
+
+    <rect x="930" y="470" width="600" height="112" rx="8" fill="#ecfdf5" stroke="#15803d" stroke-width="3"/>
+    <rect x="952" y="488" width="120" height="30" rx="6" fill="#bbf7d0"/>
+    <text class="text badge" x="1012" y="510" text-anchor="middle" fill="#166534">GEC 可维护</text>
+    <text class="text file" x="1230" y="539" text-anchor="middle">rk3568-evb-gec.dtsi</text>
+    <text class="text note" x="1230" y="569" text-anchor="middle">GEC 主内容层，沿用 5.10 命名</text>
+  </g>
+
+  <rect x="70" y="630" width="1460" height="150" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="3"/>
+  <text class="text shared-title" x="800" y="674" text-anchor="middle">两边共用的 Rockchip 基线</text>
+  <text class="text shared-file" x="800" y="722" text-anchor="middle">rk3568.dtsi   |   rk356x.dtsi   |   rk3568-linux.dtsi</text>
+  <text class="text note" x="800" y="758" text-anchor="middle">当前 GEC 板级差异不直接写入这些共享文件</text>
+
+  <rect x="70" y="820" width="1460" height="68" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+  <text class="text warning" x="800" y="864" text-anchor="middle">不要用 rk3568-evb1-* 通配符判断归属：带 gec 的 EVB1 文件属于 GEC，可维护</text>
+</svg>

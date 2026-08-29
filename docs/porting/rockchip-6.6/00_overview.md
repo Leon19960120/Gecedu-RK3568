@@ -2,10 +2,10 @@
 
 > ## ⚠️ 暂缓 / 当前未使用
 >
-> 本路线当前暂缓。现役 BSP bring-up 目标是通过 LubanCat SDK 使用
-> **Rockchip Linux 5.10.209**。
+> 本路线当前暂缓。项目当前通过 LubanCat SDK 并行维护
+> **Rockchip Linux 5.10.209** 与 **Rockchip Linux 6.1.99**。
 >
-> 本目录作为未来研究保留。除非后续补充新的硬件证据，否则不要把它当作当前项目路线。
+> 本目录作为未来研究保留。除非后续补充新的硬件证据，否则不要把它当作已经进入板端验证的 BSP 路线。
 
 > ## ⚠️ 状态：PLANNED / NOT YET VERIFIED ON HARDWARE
 >

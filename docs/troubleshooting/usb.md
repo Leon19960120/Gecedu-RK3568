@@ -1,7 +1,7 @@
 # 排障 - USB
 
-> ⚠️ **历史路线（mainline-6.18）**：本页记录 mainline-6.18 阶段的排障，非当前现役路线。
-> 现役路线是 Rockchip BSP 5.10（USB2/USB3 已验证，见 `../porting/rockchip-5.10/00_overview.md`）。
+> **适用范围：Mainline 6.18。** 本页保留 Mainline 专题排障，不代表 BSP 5.10 或 BSP 6.1 的当前状态。
+> BSP 5.10 与 BSP 6.1 同等维护；两者的 USB 状态分别见对应总览，以及 `../porting/rockchip-6.1/06_usb_visual_guide.md`。
 > 6.18 特有结论（如 `usbdp_phy` 不存在、`combphy` 启用、`dr_mode` 抖动）不要直接套用到 5.10。
 
 > 对应 6.18 bring-up 文档：`../porting/mainline-6.18/06_usb.md`（含完整 DTS 补丁与原理）。

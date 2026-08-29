@@ -1,14 +1,35 @@
 # DTS 移植方法论（跨路线）
 
-> 本文提炼 GEC RK3568 板级 DTS 移植中反复验证有效的方法，横跨 **4.19（参考）→ 6.1（尝试）→ 5.10（成功）→ 6.6（未来）** 四条路线。
+> 本文提炼 GEC RK3568 板级 DTS 移植中反复验证有效的方法，覆盖 factory 4.19 参考资料、并行维护的 BSP 5.10 / 6.1、Mainline 参考实现和暂缓的 BSP 6.6 规划。
 > 它是「怎么改、怎么判断对错」的 playbook；「改了什么」的具体落盘见 `rockchip-6.1/01_dts_override.md` 与 `rockchip-5.10/02_device_tree.md`。
 > 本文不重复列节点，只沉淀方法。
 
-## 1. 核心思想：override 层，不改 Rockchip 原文件
+![BSP 6.1 当前 DTS 派生层结构](../assets/dts/gec-dts-current-6.1.png)
 
-- 永不修改 Rockchip 官方文件（`rk3568-evb1-*.dtsi`、`rk3568.dtsi`、`rk3568-linux.dtsi` 等）。
-- 只新增**一个板级 override 文件**（`rk3568-gec*.dtsi`）+ 一个薄入口 `.dts`（`#include` 官方文件 + override 文件）。
-- 好处：Rockchip 升级 SDK 时，板级差异干净地独立出来，diff 一目了然，回滚/审计都简单。
+图中以 BSP 6.1 当前文件为例：三层 GEC 派生文件对应 EVB1 的三个层级，共享 SoC / Linux 基线；这不是“只新增一个 override 文件”的结构。
+
+## 1. 核心思想：区分共享基线与 GEC 派生层
+
+不能用 `rk3568-evb1-*` 这样的通配符判断文件归属。当前 6.1 的 `rk3568-evb1-gec-v11.dtsi` 虽然带 `evb1` 前缀，但它是 **GEC 自有板级文件**，本来就需要随板级适配继续修改。
+
+当前规则是：
+
+- **共享 Rockchip 基线**：`rk3568.dtsi`、`rk356x.dtsi`、`rk3568-linux.dtsi`，以及作为复制来源的原版 EVB 文件。当前结构复用这些文件，不把 GEC 板级差异直接写进去。
+- **GEC 派生文件**：文件名明确带 `gec`，包括 `rk3568-evb1-gec-v11-linux.dts`、`rk3568-evb1-gec-v11.dtsi` 和 `rk3568-evb-gec.dtsi`。这些是当前应维护、可修改的板级文件。
+- **判断依据是文件来源和职责，不是前缀**：`rk3568-evb-gec.dtsi` 沿用 5.10 的旧命名，但它属于 GEC；`rk3568-evb1-gec-v11.dtsi` 采用 EVB1 风格命名，也仍属于 GEC。
+
+6.1 当前不是“一个 override + 一个薄入口”，而是三个 GEC 派生层共同替代原 EVB1 的相应层级：
+
+```text
+Rockchip 原版 EVB1                       GEC 6.1 派生版
+rk3568-evb1-ddr4-v10-linux.dts    ->     rk3568-evb1-gec-v11-linux.dts
+rk3568-evb1-ddr4-v10.dtsi         ->     rk3568-evb1-gec-v11.dtsi
+rk3568-evb.dtsi                    ->     rk3568-evb-gec.dtsi
+
+rk3568.dtsi / rk356x.dtsi / rk3568-linux.dtsi 继续共用
+```
+
+好处仍然是把 GEC 板级差异留在 GEC 文件中，便于 SDK 升级时审计、对比和迁移；但不要把这条原则误写成“所有 `rk3568-evb1-*` 文件都不能改”。
 
 **三类 override 动作**：
 
@@ -23,7 +44,7 @@
 | 快照 | 含义 | 来源 |
 |------|------|------|
 | **GEC 硬件** | 板子真实接线是什么 | 原理图 + factory DTS 反编译 |
-| **目标 BSP 的 EVB1** | Rockchip 这一版的官方默认是什么 | 目标内核树 `rk3568-evb1-*.dtsi` |
+| **目标 BSP 的 EVB1** | Rockchip 这一版的官方默认是什么 | 明确选定的原版 EVB1 基线，如 6.1 的 `rk3568-evb1-ddr4-v10.dtsi`，不使用会匹配 GEC 文件的宽泛通配符 |
 | **factory 4.19** | 出厂那版是什么 | 反编译 factory boot.img 的 DTB |
 
 **关键教训**：`4.19 EVB1 ≠ 6.1 EVB1`（GMAC delay 0x41/0x1e→0x4f/0x26、WiFi sdmmc1→sdmmc2、i2c2 传感器被删、NPU 节点从 rk3568.dtsi 挪到 rk356x.dtsi……）。所以 **GEC 的 override 必须描述「GEC 硬件 vs 目标 BSP 的 EVB1」，绝不能盲抄 4.19 的 GEC DT**。

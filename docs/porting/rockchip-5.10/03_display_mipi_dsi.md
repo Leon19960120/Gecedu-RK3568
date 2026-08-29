@@ -2,6 +2,8 @@
 
 > 状态：`[BSP-5.10 RUNTIME VERIFIED]`，含 U-Boot 启动 logo。
 
+![BSP 5.10 VOP2 显示路由与 Logo 接力](../../assets/display/bsp5.10-vop2-logo-handoff.png)
+
 ## 运行时已验证
 
 BSP 5.10 上 1024x600 MIPI-DSI LCD 已验证：

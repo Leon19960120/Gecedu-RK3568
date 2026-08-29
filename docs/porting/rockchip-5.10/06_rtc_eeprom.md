@@ -1,5 +1,7 @@
 # 06 - RTC 与 EEPROM
 
+![BSP 5.10 板载低速外设地图](../../assets/hardware/bsp5.10-low-speed-device-map.png)
+
 ## RTC
 
 | 设备 | 状态 | 证据 |

@@ -4,6 +4,8 @@
 
 ## 证据链
 
+![板级 Bring-up 八级证据链](../../assets/methodology/bringup-evidence-chain.png)
+
 ```text
 1. Source DTS
 2. Built DTB

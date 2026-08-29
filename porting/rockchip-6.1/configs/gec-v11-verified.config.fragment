@@ -1,0 +1,10 @@
+# GecEdu RK3568 BSP 6.1 key config fragment
+#
+# 2026-08-27 验证：加 CONFIG_FB=y 后 /dev/fb0 生成、HDMI（VP1）正常出图。
+#
+# 根因：6.1 的 DRM_FBDEV_EMULATION 新增 `depends on FB=y || FB=DRM_KMS_HELPER`，
+#       而 rockchip_rk3568_gec_linux_defconfig 未设 CONFIG_FB，导致该选项虽 default y
+#       也被依赖卡死，未编入，最终无 /dev/fb0、launcher 报 cannot open framebuffer。
+#
+# 修复：在 arch/arm64/configs/rockchip_rk3568_gec_linux_defconfig 末尾加：
+CONFIG_FB=y

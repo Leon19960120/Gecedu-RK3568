@@ -1,7 +1,7 @@
 # 排障 - Boot / 启动
 
-> ⚠️ **历史路线（mainline-6.18）**：本页记录 mainline-6.18 阶段的排障，非当前现役路线。
-> 现役路线是 Rockchip BSP 5.10，排障/状态见 `../porting/rockchip-5.10/`（`10_known_issues.md`、`11_debug_methodology.md`）。
+> **适用范围：Mainline 6.18。** 本页保留 Mainline 专题排障，不代表 BSP 5.10 或 BSP 6.1 的当前状态。
+> BSP 5.10 与 BSP 6.1 同等维护；启动问题应分别查看对应总览、启动验证和已知问题记录。
 > 6.18 特有结论（如 `ttyS2` 强制、`CONFIG_CMDLINE_FORCE`、FIT 外置头）不要直接套用到 5.10。
 
 > 完整 6.18 启动日志见 `../porting/mainline-6.18/01_boot_chain.md` 与 `../porting/mainline-6.18/10_debug_notes.md`。

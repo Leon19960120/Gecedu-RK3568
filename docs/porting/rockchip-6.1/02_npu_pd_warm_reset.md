@@ -1,6 +1,10 @@
-# 02 - 6.1 NPU / PD_NPU warm-reset panic（最终放弃 6.1 的原因）
+# 02 - 6.1 NPU / PD_NPU warm-reset panic（开放问题）
 
-> 状态：`[BSP-6.1 OBSERVED / NOT RESOLVED]` —— 这是 6.1 路线最核心的卡点，也是「NPU 屡屡报错导致启动不了」的准确技术表述。根因在 6.1 里**未修好**，最终用「换 5.10」绕开。
+> 状态：`[BSP-6.1 OBSERVED / NOT RESOLVED]` —— 这是 6.1 路线当前需要继续定位的重要风险。根因尚未修好；BSP 5.10 的正常行为用于对照，不表示 BSP 6.1 路线被取代。
+
+![Linux 6.1 NPU warm-reset 卡点](../../assets/npu/linux6.1-npu-warm-reset.png)
+
+图中冷启动成功和 warm reset panic 是已观察事实；“PMU 状态残留导致 ACK 不返回”仍是机制推测，并未画成最终根因。
 
 ## 现象
 
@@ -42,7 +46,7 @@ not syncing: panic_on_set_idle set
    - `CLKGATE_CON(3)` = `0xfdd2030c`（GFLAGS = HIWORD_MASK | CLK_GATE_SET_TO_DISABLE，raw=1→gated）：bit2=HCLK_NPU_PRE、bit3=PCLK_NPU_PRE、bit4=ACLK_NPU_PRE、bit7=ACLK_NPU、bit8=HCLK_NPU
    - `SOFTRST_CON(2)` = `0xfdd20408`（assert 写 BIT、deassert 清；raw=1→asserted）：bit8=SRST_A_NPU_NIU、bit9=SRST_H_NPU_NIU、bit10=SRST_P_NPU_NIU、bit11=SRST_A_NPU、bit12=SRST_H_NPU
 
-## 未决修复方向（若未来回 6.1/6.6）
+## 后续修复方向
 
 - (a) 在 U-Boot restart 路径强制 PD_NPU 掉电。
 - (b) 给 6.1 的 `rockchip_pd_power_on` 加超时/reset 容忍。

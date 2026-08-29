@@ -23,6 +23,9 @@ __pycache__/
 site/
 .mkdocs/
 
+# Local Crashpad output accidentally emitted beside BSP 6.1 docs
+docs/porting/rockchip-6.1/debug.log
+
 # Ghidra 反编译产物（厂商闭源二进制的派生物，与本仓库 MIT 部分许可边界不清，本地保留不入库）
 # 注意：仅排除机器生成的反编译源码，自写的逆向分析文档 reverse_*.md 照常入库
 docs/development/decompiled_rk356x-demo.c
