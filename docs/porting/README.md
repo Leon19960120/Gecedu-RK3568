@@ -36,7 +36,7 @@
 
 ## rockchip-6.1/ — BSP 6.1 移植路线
 
-Rockchip BSP 6.1 与 BSP 5.10 同等维护。它带 in-tree `rknpu`、mpp、rkisp 和 Rockchip panel-simple 扩展，当前已完成启动、HDMI、fb0、专用 defconfig 裁剪及多项 USB 实测。
+Rockchip BSP 6.1 与 BSP 5.10 同等维护。它带 in-tree `rknpu`、mpp、rkisp 和 Rockchip panel-simple 扩展，当前已完成 Ubuntu 22.04 XFCE 的 EXTBOOT 启动闭环、HDMI、fb0、专用 defconfig 裁剪及多项 USB 实测。
 
 该目录包含：
 
@@ -48,10 +48,12 @@ Rockchip BSP 6.1 与 BSP 5.10 同等维护。它带 in-tree `rknpu`、mpp、rkis
 - RK3568 CAN1 的 6.1 配置符号、DTS、SocketCAN 注册和物理总线验收步骤。
 - RTL8723DS Bluetooth 的 RFKill、UART8/H5、固件下载、HCI 注册与扫描验收步骤。
 - Linux 6.1.99 #22 的完整启动日志审计、问题归并、处理优先级与复测命令。
+- Ubuntu 22.04 XFCE、SD 卡 EXTBOOT、内核 DEB 打包、ext4 兼容和图形系统跑通记录。
 
 当前 6.1 口径：
 
 - `[BSP-6.1 RUNTIME VERIFIED]`：kernel 6.1.99 可启动，GEC 专用 defconfig 生效，HDMI + fb0 已验证。
+- `[BSP-6.1 UBUNTU RUNTIME VERIFIED]`：Ubuntu 22.04 XFCE 已从 SD 卡通过 EXTBOOT 启动，GEC 专用 DTB、rootfs、Xorg、LightDM 和 XFCE 图形链路生效。
 - `[BSP-6.1 RUNTIME VERIFIED]`：RTL8723DS 的 rtw88 五模块、固件握手和 `wlan0` 注册已验证；Wi-Fi 扫描和联网仍待补证据。
 - `[BSP-6.1 RUNTIME VERIFIED]`：RK3568 CAN1 控制器已注册为 `can0`，500 kbit/s 与 200 MHz 时钟已验证；物理总线收发待验证。
 - `[BSP-6.1 RUNTIME VERIFIED]`：RTL8723DS Bluetooth 已完成 UART8/H5 固件下载与 `hci0` 注册；扫描、配对和 profile 待验证。

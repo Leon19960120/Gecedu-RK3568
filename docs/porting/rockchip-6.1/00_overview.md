@@ -1,6 +1,6 @@
 # 00 - Rockchip BSP 6.1 移植总览
 
-> 状态：`[ACTIVE BSP ROUTE / PARTIAL RUNTIME VERIFIED]`
+> 状态：`[ACTIVE BSP ROUTE / UBUNTU RUNTIME VERIFIED]`
 >
 > Rockchip BSP 6.1 与 Rockchip BSP 5.10 是本项目同等维护的两条路线。两者分别记录构建配置、运行证据、裁剪进展和未解决风险，不存在“6.1 被 5.10 取代”的项目口径。
 
@@ -8,7 +8,7 @@
 
 Rockchip BSP 6.1（`develop-6.1`，当前内核 6.1.99）具备 in-tree `rknpu`、MPP、RKISP 和 Rockchip 显示扩展，适合继续进行 GEC V11 板级适配、专用内核裁剪和显示 / USB / NPU 验证。
 
-当前 6.1 已经不是“仅编译未运行”状态：内核可启动、GEC 专用 defconfig 生效、HDMI 和 `/dev/fb0` 已验证，USB 拓扑与部分接口也已有实测记录。不同外设仍按各自证据层级标记，不能因为系统启动成功就把全部功能写成已完成。
+当前 6.1 已经完成从 SD 卡通过 EXTBOOT 启动 Ubuntu 22.04 XFCE 的完整系统闭环：内核可启动、GEC 专用 defconfig 和 DTB 生效、Ubuntu rootfs 正常挂载，并已进入 Xorg、LightDM 和 XFCE 图形系统。USB 拓扑与部分接口也已有实测记录。不同外设仍按各自证据层级标记，不能因为 Ubuntu 桌面启动成功就把全部功能写成已完成。
 
 ## 当前基线
 
@@ -20,7 +20,7 @@ Rockchip BSP 6.1（`develop-6.1`，当前内核 6.1.99）具备 in-tree `rknpu`�
 | BoardConfig | `RK_KERNEL_PREFERRED="6.1"` |
 | 专用 defconfig | `rockchip_rk3568_gec_linux_defconfig` |
 | DTS | `rk3568-evb1-gec-v11-linux` |
-| FIT | `RK_USE_FIT_IMG=y` |
+| 当前启动方式 | `RK_KERNEL_EXTBOOT=y`，SD 卡 Boot 分区 + Ubuntu rootfs |
 | 目标板 | GEC RK3568 DDR4 V11 |
 
 早期 `/home/hyl/rockchip-kernel-6.1` 独立内核树和 `rk3568-gec-linux.dts` override 实验仍保留为技术来源；当前运行验证与后续裁剪以 LubanCat SDK 的 `kernel-6.1`、专用 defconfig 和当前 DTS 为准。
@@ -28,6 +28,8 @@ Rockchip BSP 6.1（`develop-6.1`，当前内核 6.1.99）具备 in-tree `rknpu`�
 ## 已验证进展
 
 - `[BSP-6.1 RUNTIME VERIFIED]` Linux 6.1.99 可启动，4 个 Cortex-A55 CPU 正常进入系统，shell 可用。
+- `[BSP-6.1 UBUNTU RUNTIME VERIFIED]` Ubuntu 22.04 XFCE 已通过 EXTBOOT 从 SD 卡启动，rootfs 挂载于 `/dev/mmcblk1p3`，Xorg、LightDM 和 XFCE 图形链路正常运行。
+- `[BSP-6.1 BUILD VERIFIED]` `bindeb-pkg` 已能生成内核、headers 和 libc-dev 包，`linux-image` 安装后模块位于 `/lib/modules/6.1.99-rk356x/`。
 - `[BSP-6.1 RUNTIME VERIFIED]` `rockchip_rk3568_gec_linux_defconfig` 生效，第一轮 SoC selector 与 `NR_CPUS` 裁剪已完成。
 - `[BSP-6.1 RUNTIME VERIFIED]` 补齐 `CONFIG_FB=y` 后，DRM fbdev emulation 创建 `/dev/fb0`。
 - `[BSP-6.1 RUNTIME VERIFIED]` HDMI EDID、PHY、VOP2 和 1920x1080@60 输出正常。
@@ -41,6 +43,8 @@ Rockchip BSP 6.1（`develop-6.1`，当前内核 6.1.99）具备 in-tree `rknpu`�
 ## 当前开放问题
 
 - `[PENDING]` DSI LCD 暂未完成 6.1 实机测试，不能沿用 BSP 5.10 的 DSI 已验证状态。
+- `[PENDING]` Ubuntu rootfs 首次启动自动扩容仍需补充最终验收证据；镜像制作端已通过 `-O ^orphan_file` 规避 e2fsprogs 1.47.2 与板端 1.46.5 的特性不兼容。
+- `[PENDING]` Ubuntu 环境下的 ADB / USB Gadget、触摸屏屏幕键盘和 GEC 专用 `fire-config` 板卡识别仍需完善。
 - `[PENDING]` LVGL 固定 1024x600 与 HDMI 1920x1080 framebuffer 的匹配，以及 VOP2 hardware scaling 方案仍待验证。
 - `[OPEN]` NPU / PD_NPU warm-reset panic 的机制尚未最终确认，详见 `02_npu_pd_warm_reset.md`。
 - `[PENDING]` RTL8723DS 已出现 `wlan0`，但 AP 扫描、关联、DHCP 和 ping 尚未补齐，不能把固件握手和 netdev 注册直接写成 Wi-Fi 网络功能通过。
@@ -60,7 +64,7 @@ NPU warm-reset 是 6.1 的重要风险，但它是一个需要继续定位的子
 
 ### 启动方法
 
-早期自编镜像启动失败的主要原因是手动 `bootm` 搬运地址错误。改用 Rockchip 原生 `boot_fit` 和正确 FIT 打包后，6.1 已成功启动。该问题已解决，不再作为当前路线状态判断依据。
+早期自编镜像启动失败的主要原因是手动 `bootm` 搬运地址错误。改用 Rockchip 原生 `boot_fit` 和正确 FIT 打包后，6.1 首次成功启动；当前 Ubuntu 基线进一步切换为 `RK_KERNEL_EXTBOOT=y`，由独立 Boot 分区提供 `boot.scr`、GEC 专用 uEnv、内核、DTB 和 initrd，并挂载 SD 卡第三分区的 Ubuntu rootfs。两者是不同阶段的有效启动记录，不应混写成同一条运行链路。
 
 ### NPU warm-reset
 
@@ -84,6 +88,7 @@ NPU warm-reset 是 6.1 的重要风险，但它是一个需要继续定位的子
 | `08_can_rk3568_2026-08-29.md` | RK3568 CAN1 驱动、DTS、SocketCAN 与物理总线验证边界 |
 | `09_bluetooth_rtl8723ds_uart8_2026-08-29.md` | RTL8723DS Bluetooth RFKill、UART8、固件、HCI 与扫描边界 |
 | `10_boot_log_issue_audit_2026-08-29.md` | Linux 6.1.99 #22 完整启动日志审计、24 个问题族与修复顺序 |
+| `11_ubuntu_22.04_extboot_2026-09-06.md` | Ubuntu 22.04 XFCE、EXTBOOT、内核 DEB、rootfs 兼容与图形系统跑通记录 |
 
 ## 与其它路线的关系
 
